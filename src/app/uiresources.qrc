@@ -19,5 +19,6 @@
     <file>ddVideoPlayer.ui</file>
     <file>ddPFGrasp.ui</file>
     <file>ddCameraPanel.ui</file>
+    <file>ddForestPayloads.ui</file>
   </qresource>
 </RCC>

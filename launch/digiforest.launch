@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+    <arg name="robot_dir" default="empty"/>
+    <arg name="config_filename" default="director_config.yaml"/>
+
+    <node pkg="director" type="director" name="director" output="screen"
+          args="--startup $(find director)/src/python/director/runstartup.py
+          --robot-config $(find director)/config/$(arg config_filename)">
+    </node>
+
+</launch>

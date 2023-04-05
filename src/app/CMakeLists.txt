@@ -238,6 +238,7 @@ set(image_files
   images/claw.png
   images/task_icon.png
   images/video_record.png
+  images/forest.png
 )
 
 file(COPY ${image_files} DESTINATION "${CATKIN_DEVEL_PREFIX}/${DD_INSTALL_PYTHON_DIR}/director/images")

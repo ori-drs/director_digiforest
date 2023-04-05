@@ -21,5 +21,6 @@
     <depend>qt_property_browser</depend>
     <depend>python_qt</depend>
     <depend>vtk_ros</depend>
+    <depend>digiforest_drs</depend>
 </package>
 
