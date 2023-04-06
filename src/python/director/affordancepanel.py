@@ -26,11 +26,10 @@ class WidgetDict(object):
 
 
 class AffordancePanel(object):
-    def __init__(self, view, affordanceManager, jointController=None):
+    def __init__(self, view, affordanceManager):
 
         self.view = view
         self.affordanceManager = affordanceManager
-        self.jointController = jointController
 
         loader = QtUiTools.QUiLoader()
         uifile = QtCore.QFile(":/ui/ddAffordancePanel.ui")
@@ -62,15 +61,7 @@ class AffordancePanel(object):
 
     def getSpawnFrame(self):
 
-        if self.jointController:
-            # get spawn frame in front of robot
-            pos = self.jointController.q[:3]
-            rpy = np.degrees(self.jointController.q[3:6])
-            frame = transformUtils.frameFromPositionAndRPY(pos, rpy)
-            frame.PreMultiply()
-            frame.Translate(0.5, 0.0, 0.3)
-        else:
-            frame = vtk.vtkTransform()
+        frame = vtk.vtkTransform()
 
         return frame
 
@@ -137,14 +128,14 @@ def _getAction():
     return None
 
 
-def init(view, affordanceManager, jointController):
+def init(view, affordanceManager):
 
     global panel
     global dock
 
-    panel = AffordancePanel(view, affordanceManager, jointController)
+    panel = AffordancePanel(view, affordanceManager)
     dock = app.addWidgetToDock(
-        panel.widget, action=_getAction(), associatedRobotName=jointController.robotName
+        panel.widget, action=_getAction()
     )
     dock.hide()
 

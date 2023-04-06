@@ -10,6 +10,7 @@ import numpy as np
 from PythonQt import QtGui
 from director import actionhandlers
 from director import affordancepanel
+from director import affordancemanager
 from director import camerabookmarks
 from director import cameracontrol
 from director import cameracontrolpanel
@@ -140,85 +141,8 @@ app.setCameraTerrainModeEnabled(view, True)
 app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
 for robotSystem in robotSystems:
-    # selector.addRobot(robotSystem.robotName)
-    # selector.associateViewBehaviorWithRobot(
-    #     robotSystem.viewBehaviors, robotSystem.robotName
-    # )
     directorConfig = drcargs.getRobotConfig(robotSystem.robotName)
-    #
-    # usePerception = True
-    # useDataFiles = True
-    #
-    # useSkybox = False
-    # useFeetlessRobot = False
-    #
-    # poseCollection = PythonQt.dd.ddSignalMap()
-    # costCollection = PythonQt.dd.ddSignalMap()
-    #
-    # if "disableComponents" in directorConfig:
-    #     for component in directorConfig["disableComponents"]:
-    #         print("Disabling", component)
-    #         locals()[component] = False
-    #
-    # if "enableComponents" in directorConfig:
-    #     for component in directorConfig["enableComponents"]:
-    #         print("Enabling", component)
-    #         locals()[component] = True
-    #
-    # if usePerception:
-    #     segmentationpanel.init()
-    #     cameraview.init(robotName=robotSystem.robotName)
-    #
-    #     cameraview.cameraViews[
-    #         robotSystem.robotName
-    #     ].rayCallback = segmentation.extractPointsAlongClickRay
-    #
-    # gridUpdater = RobotGridUpdater(
-    #     grid.getChildFrame(),
-    #     robotSystem.robotStateModel,
-    #     robotSystem.robotStateJointController,
-    #     directorConfig.get("grid_z_offset", 0),
-    # )
-    #
-    #
-    # #reset time button and connections
-    # reset_time_button = QtGui.QPushButton("Reset time")
-    # reset_time_button.setObjectName("resettime")
-    #
-    # # Iterate over all sources and reset time when reset button pressed
-    # def reset_sources_time():
-    #     for source in robotSystem.sources:
-    #         if hasattr(source, "resetTime"):
-    #             source.resetTime()
-    #         else:
-    #             print(
-    #                 "WARNING: source {} does not have a resetTime function. This is probably a mistake.".format(
-    #                     source
-    #                 )
-    #             )
-    #
-    # reset_time_button.connect("clicked()", reset_sources_time)
-    # reset_time_button.connect(
-    #     "clicked()", cameraview.cameraViews[robotSystem.robotName].resetTime
-    # )
-    # app.getMainWindow().statusBar().addPermanentWidget(reset_time_button)
-    # app.getRobotSelector().associateWidgetWithRobot(
-    #     reset_time_button, robotSystem.robotName
-    # )
-    #
-    # if useSkybox:
-    #     skyboxDataDir = os.path.expanduser("~/Downloads/skybox")
-    #     imageMap = skybox.getSkyboxImages(skyboxDataDir)
-    #     skyboxObjs = skybox.createSkybox(imageMap, view)
-    #     skybox.connectSkyboxCamera(view)
-    #
-    # robotHighlighter = RobotLinkHighlighter(robotSystem.robotStateModel)
-    #
-    # if useDataFiles:
-    #
-    #     for filename in drcargs.args().data_files:
-    #         actionhandlers.onOpenFile(filename)
-    #
+
     cameras = [
         camera["name"] for camera in directorConfig["sensors"]["camera"]["color"]
     ]
@@ -234,36 +158,13 @@ for robotSystem in robotSystems:
     #
 
     screengrabberpanel.init(view, imageWidget, robotSystem.robotName)
-    framevisualization.init(view, robotSystem)
+    affordanceManager = affordancemanager.AffordanceObjectModelManager(
+        view
+    )
     affordancePanel = affordancepanel.init(
-        view, robotSystem.affordanceManager, robotSystem.robotStateJointController
+        view, affordanceManager
     )
 
-    # def drawCenterOfMass(model):
-    #     stanceFrame = robotSystem.footstepsDriver.getFeetMidPoint(model)
-    #     com = list(model.model.getCenterOfMass())
-    #     com[2] = stanceFrame.GetPosition()[2]
-    #     d = DebugData()
-    #     d.addSphere(com, radius=0.015)
-    #     obj = vis.updatePolyData(
-    #         d.getPolyData(),
-    #         "COM %s" % model.getProperty("Name"),
-    #         color=[1, 0, 0],
-    #         visible=False,
-    #         parent=model,
-    #     )
-    #
-    # def initCenterOfMassVisualization():
-    #     for model in [
-    #         robotSystem.robotStateModel,
-    #         robotSystem.teleopRobotModel,
-    #         robotSystem.robotSystem.playbackRobotModel,
-    #     ]:
-    #         model.connectModelChanged(drawCenterOfMass)
-    #         drawCenterOfMass(model)
-    #
-    # if useFeetlessRobot:
-    #     robotSystem.ikPlanner.robotNoFeet = True
 
 print("===== director setup complete, calling scripts for further setup =====")
 
