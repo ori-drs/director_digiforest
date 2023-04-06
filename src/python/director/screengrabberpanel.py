@@ -369,7 +369,7 @@ def init(view, imageWidget, robotName=""):
     dock = app.addWidgetToDock(
         panel.widget, action=action, associatedRobotName=robotName
     )
-    app.getRobotSelector().associateWidgetWithRobot(action, robotName)
+    # app.getRobotSelector().associateWidgetWithRobot(action, robotName)
 
     dock.hide()
 

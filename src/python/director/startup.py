@@ -21,7 +21,6 @@ from director import robotsystem
 from director import screengrabberpanel
 from director import segmentation
 from director import segmentationpanel
-from director import skybox
 from director import viewcolors
 from director import viewframes
 from director import visualization as vis
@@ -29,94 +28,6 @@ from director import vtkAll as vtk
 from director.debugpolydata import DebugData
 from director.pointpicker import ImagePointPicker
 from director.timercallback import TimerCallback
-
-
-class RobotLinkHighlighter(object):
-    def __init__(self, robotModel):
-        self.robotModel = robotModel
-        self.previousColors = {}
-
-    def highlightLink(self, linkName, color):
-
-        currentColor = self.robotModel.model.getLinkColor(linkName)
-        if not currentColor.isValid():
-            return
-
-        if linkName not in self.previousColors:
-            self.previousColors[linkName] = currentColor
-
-        alpha = self.robotModel.getProperty("Alpha")
-        newColor = QtGui.QColor(
-            color[0] * 255, color[1] * 255, color[2] * 255, alpha * 255
-        )
-
-        self.robotModel.model.setLinkColor(linkName, newColor)
-
-    def dehighlightLink(self, linkName):
-
-        color = self.previousColors.pop(linkName, None)
-        if color is None:
-            return
-
-        color.setAlpha(self.robotModel.getProperty("Alpha") * 255)
-        self.robotModel.model.setLinkColor(linkName, color)
-
-
-class ImageOverlayManager(object):
-    def __init__(self, monoCamerasConfig, robotName):
-        self.viewName = monoCamerasConfig[0]
-        self.desiredWidth = 400
-        self.position = [0, 0]
-        self.usePicker = False
-        self.imageView = None
-        self.imagePicker = None
-        self.robotName = robotName
-        self._prevParent = None
-        self._updateAspectRatio()
-
-    def setWidth(self, width):
-        self.desiredWidth = width
-        self._updateAspectRatio()
-        self.hide()
-        self.show()
-
-    def _updateAspectRatio(self):
-        imageExtent = cameraview.imageManager.images[self.robotName][
-            self.viewName
-        ].GetExtent()
-        if imageExtent[1] != -1 and imageExtent[3] != -1:
-            self.imageSize = [imageExtent[1] + 1, imageExtent[3] + 1]
-            imageAspectRatio = self.imageSize[0] / self.imageSize[1]
-            self.size = [self.desiredWidth, self.desiredWidth / imageAspectRatio]
-
-    def show(self):
-        if self.imageView:
-            return
-
-        imageView = cameraview.views[self.viewName]
-        self.imageView = imageView
-        self._prevParent = imageView.view.parent()
-
-        self._updateAspectRatio()
-
-        imageView.view.hide()
-        imageView.view.setParent(view)
-        imageView.view.resize(self.size[0], self.size[1])
-        imageView.view.move(self.position[0], self.position[1])
-        imageView.view.show()
-
-        if self.usePicker:
-            self.imagePicker = ImagePointPicker(imageView)
-            self.imagePicker.start()
-
-    def hide(self):
-        if self.imageView:
-            self.imageView.view.hide()
-            self.imageView.view.setParent(self._prevParent)
-            self.imageView.view.show()
-            self.imageView = None
-        if self.imagePicker:
-            self.imagePicker.stop()
 
 
 class ToggleImageViewHandler(object):
@@ -157,160 +68,6 @@ class RobotGridUpdater(object):
         self.gridFrame.copyFrame(t)
 
 
-class RobotSelector(QtGui.QWidget):
-    """
-    An object which stores various UI components associated with a robot and provides a combo box with the names
-     of robots to facilitate switching between them and modifying UI appearance so that only components associated
-     with the selected robot are displayed at any one time.
-    """
-
-    # Object types that can be associated with the object. Each one has a different method of hiding or changing
-    # behaviour so that all actions affect only the selected robot.
-    _objectTypes = ["widgets", "views", "models", "viewbehaviors"]
-
-    def __init__(self, robotNames=[]):
-        """
-        Initialise the selector object
-        :param robotNames: The names of robots to add to the combobox to start with
-        """
-        super(RobotSelector, self).__init__()
-        self.objectName = "RobotSelector"
-        self.robotNames = robotNames
-        self.associatedWidgets = (
-            {}
-        )  # associated objects are stored here. Keys are robot names
-
-        self.robotSelectLabel = QtGui.QLabel("Controlling:")
-
-        self.robotSelectCombo = QtGui.QComboBox()
-
-        for robotName in self.robotNames:
-            self.addRobot(robotName)
-
-        self.horizLayout = QtGui.QHBoxLayout(self)
-        self.horizLayout.addWidget(self.robotSelectLabel)
-        self.horizLayout.addWidget(self.robotSelectCombo)
-
-        self.robotSelectCombo.connect(
-            "currentIndexChanged(QString)", self.showAssociatedComponents
-        )
-
-    def addRobot(self, robotName):
-        self.robotNames.append(robotName)
-        self.robotSelectCombo.addItem(robotName)
-        self.associatedWidgets[robotName] = {}
-        for objtype in self._objectTypes:
-            self.associatedWidgets[robotName][objtype] = []
-
-    def _associateObjectWithRobot(self, object, robotName, type):
-        """
-        Associate an object of a given type with a robot
-        :param object: An object to associate with the robot
-        :param robotName: The name of the robot with which to associate the object
-        :param type: The type of the object - one of the keys in self._objectTypes
-        :return:
-        """
-        if (robotName in self.robotNames) and (
-            object not in self.associatedWidgets[robotName][type]
-        ):
-            self.associatedWidgets[robotName][type].append(object)
-
-    def associateWidgetWithRobot(self, widget, robotName):
-        """
-        Associate a qt widget with the given robot. If the robot name is one that has not been added, or if the widget
-        has already been added to that robot, the widget will not be added
-        :param widget: The widget to associate
-        :param robotName: The robot name with which to associate the widget
-        :return:
-        """
-        self._associateObjectWithRobot(widget, robotName, "widgets")
-
-    def associateViewWithRobot(self, view, robotName):
-        """
-        Associate a view with a given robot. A view is something created by cameraview.py when adding a new camera
-        perspective. If the robot name is one that has not been added, or if the view has already been added to
-        that robot, the view will not be added
-        :param view: The view to associate
-        :param robotName: The robot name with which to associate the view
-        :return:
-        """
-        self._associateObjectWithRobot(view, robotName, "views")
-
-    def associateModelWithRobot(self, model, robotName):
-        """
-        Associate a model with a given robot. Models are PolyDataItem objects which can be displayed in the DRC view of
-        director to display something.
-        :param model: The model to associate
-        :param robotName: The robot with which to associate the model
-        :return:
-        """
-        self._associateObjectWithRobot(model, robotName, "models")
-
-    def associateViewBehaviorWithRobot(self, viewBehavior, robotName):
-        """
-        Associate a RobotViewBehaviors object which controls UI input for a specific robot
-        :param viewBehavior: A RobotViewBehaviors object to associate
-        :param robotName: The robot with which to associate the RobotViewBehaviors object
-        :return:
-        """
-        self._associateObjectWithRobot(viewBehavior, robotName, "viewbehaviors")
-
-    def finishSetup(self):
-        """
-        Completes the setup of the director UI by running through all the available robots and setting the panel
-        visibility to ensure that at the start only a single set of panels is shown.
-        :return:
-        """
-        for name in self.robotNames:
-            self.selectRobot(name)
-
-        self.selectRobot(self.robotNames[0])
-
-    def selectRobot(self, robotName):
-        index = self.robotSelectCombo.findText(robotName)
-        if index >= 0:
-            self.robotSelectCombo.setCurrentIndex(index)
-
-    def selectedRobotName(self):
-        return self.robotSelectCombo.currentText
-
-    def showAssociatedComponents(self, robotName):
-        # If we have nothing in the dictionary, do nothing, otherwise may crash due to empty dicts.
-        # TODO better checking of internal state of viewmanager to remove this check
-        if not self.associatedWidgets:
-            return
-        # Have to update the page index cache before moving any of the components so that the hidden tabs are placed
-        # in the correct order when they are shown
-        app.getViewManager().updatePageIndexCache()
-        # If there is an open dock widget, we must hide it independently of the action that it is attached to.
-        # For simplicity, just hide all dock widgets when switching.
-        # TODO remember open docks associated with each robot so that UI state is saved
-        app.hideDockWidgets()
-        # TODO use an object with a hide/show method to store widgets and other components so that the hiding method
-        #  is associated with the object rather than being implemented here
-        for robot in list(self.associatedWidgets.keys()):
-            for widget in self.associatedWidgets[robot]["widgets"]:
-                widget.setVisible(robot == robotName)
-
-            for view in self.associatedWidgets[robot]["views"]:
-                if robot == robotName:
-                    app.getViewManager().showView(view)
-                else:
-                    app.getViewManager().hideView(view, False)
-
-            for model in self.associatedWidgets[robot]["models"]:
-                model.setProperty("Visible", robot == robotName)
-
-            for viewBehavior in self.associatedWidgets[robot]["viewbehaviors"]:
-                # Setting the enabled flag to false will cause the event filter not to filter any events, allowing them
-                # to pass to the event filter which is enabled, i.e. the one for the currently selected robot
-                viewBehavior.robotViewBehaviors.setEnabled(robot == robotName)
-
-            # Disable the submenu in the view menu for other robots. Without this items in the submenus are hidden
-            # but the submenu is not greyed out
-            app.findMenu(robot).setEnabled(robot == robotName)
-
-
 drcargs.args()
 app.startup(globals())
 om.init(app.getMainWindow().objectTree(), app.getMainWindow().propertiesPanel())
@@ -326,10 +83,10 @@ showPolyData = segmentation.showPolyData
 updatePolyData = segmentation.updatePolyData
 
 
-selector = RobotSelector()
-# To hide the selector if there is only one robot we actually need to hide the action that is created by the
-# toolbar's addwidget
-selectorAction = app.getMainWindow().toolBar().addWidget(selector)
+# selector = RobotSelector()
+# # To hide the selector if there is only one robot we actually need to hide the action that is created by the
+# # toolbar's addwidget
+# selectorAction = app.getMainWindow().toolBar().addWidget(selector)
 
 # If this is a single robot configuration, we expect modelName as a top level key. Otherwise it will be a second
 # level one.
@@ -342,14 +99,14 @@ for (
     robotSystems.append(robotsystem.create(view, robotName=robotConfig["robotName"]))
 
 # If there is only one robot, the selector should not be shown
-if len(robotSystems) == 1:
-    selectorAction.setVisible(False)
-    # When there is only one robot we do not want to prefix topics
-    robotSystems[0]._add_fields(rosPrefix="", single=True)
-else:
-    for robotSystem in robotSystems:
-        # With multiple robots, prefix the topics with the robot names
-        robotSystem._add_fields(rosPrefix=robotSystem.robotName, single=False)
+# if len(robotSystems) == 1:
+#     selectorAction.setVisible(False)
+#     # When there is only one robot we do not want to prefix topics
+#     robotSystems[0]._add_fields(rosPrefix="", single=True)
+# else:
+#     for robotSystem in robotSystems:
+#         # With multiple robots, prefix the topics with the robot names
+#         robotSystem._add_fields(rosPrefix=robotSystem.robotName, single=False)
 
 # Before going through all the robot systems, we do some setup which is universal and not linked to any specific robot
 useLightColorScheme = True
