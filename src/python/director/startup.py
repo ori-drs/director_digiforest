@@ -84,32 +84,11 @@ showPolyData = segmentation.showPolyData
 updatePolyData = segmentation.updatePolyData
 
 
-# selector = RobotSelector()
-# # To hide the selector if there is only one robot we actually need to hide the action that is created by the
-# # toolbar's addwidget
-# selectorAction = app.getMainWindow().toolBar().addWidget(selector)
+from director import robotviewbehaviors
+robotViewBehavior = robotviewbehaviors.RobotViewBehaviors(view, None)
 
-# If this is a single robot configuration, we expect modelName as a top level key. Otherwise it will be a second
-# level one.
-robotSystems = []
-for (
-    _,
-    robotConfig,
-) in drcargs.DirectorConfig.getDefaultInstance().robotConfigs.items():
-    print("Loading config for robot with name {}".format(robotConfig["robotName"]))
-    robotSystems.append(robotsystem.create(view, robotName=robotConfig["robotName"]))
 
-# If there is only one robot, the selector should not be shown
-# if len(robotSystems) == 1:
-#     selectorAction.setVisible(False)
-#     # When there is only one robot we do not want to prefix topics
-#     robotSystems[0]._add_fields(rosPrefix="", single=True)
-# else:
-#     for robotSystem in robotSystems:
-#         # With multiple robots, prefix the topics with the robot names
-#         robotSystem._add_fields(rosPrefix=robotSystem.robotName, single=False)
-
-# Before going through all the robot systems, we do some setup which is universal and not linked to any specific robot
+# setup
 useLightColorScheme = True
 
 sceneRoot = om.getOrCreateContainer("scene")
@@ -140,30 +119,22 @@ app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
 app.setCameraTerrainModeEnabled(view, True)
 app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
-for robotSystem in robotSystems:
-    directorConfig = drcargs.getRobotConfig(robotSystem.robotName)
+imageWidget = cameraview.ImageWidget(
+    cameraview.imageManager,
+    [],
+    view,
+    visible=False,
+)
+imageViewHandler = ToggleImageViewHandler(imageWidget)
+#
 
-    cameras = [
-        camera["name"] for camera in directorConfig["sensors"]["camera"]["color"]
-    ]
-    #imageOverlayManager = ImageOverlayManager(cameras, robotSystem.robotName)
-    imageWidget = cameraview.ImageWidget(
-        cameraview.imageManager,
-        cameras,
-        view,
-        visible=False,
-        robotName=robotSystem.robotName,
-    )
-    imageViewHandler = ToggleImageViewHandler(imageWidget)
-    #
-
-    screengrabberpanel.init(view, imageWidget, robotSystem.robotName)
-    affordanceManager = affordancemanager.AffordanceObjectModelManager(
-        view
-    )
-    affordancePanel = affordancepanel.init(
-        view, affordanceManager
-    )
+screengrabberpanel.init(view, imageWidget)
+affordanceManager = affordancemanager.AffordanceObjectModelManager(
+    view
+)
+affordancePanel = affordancepanel.init(
+    view, affordanceManager
+)
 
 
 print("===== director setup complete, calling scripts for further setup =====")

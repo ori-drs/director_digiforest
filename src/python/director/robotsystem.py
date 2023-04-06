@@ -5,6 +5,7 @@ from director import drcargs
 
 class RobotSystemFactory(object):
     def getComponents(self):
+        from director import robotviewbehaviors
 
         components = {
             "DirectorConfig": [],
@@ -14,12 +15,11 @@ class RobotSystemFactory(object):
             "SegmentationAffordances": ["Segmentation", "Affordances"],
             "PerceptionDrivers": ["RobotState"],
             "Affordances": [],
-            #'ViewBehaviors' : ['Footsteps', 'PerceptionDrivers', 'Planning', 'Affordances'],
             "ViewBehaviors": ["PerceptionDrivers", "Affordances"],
             "RobotLinkSelector": ["ViewBehaviors"],
         }  # x
 
-        disabledComponents = ["RobotLinkSelector"]
+        disabledComponents = ["RobotLinkSelector", "ViewBehaviors"]
 
         return components, disabledComponents
 

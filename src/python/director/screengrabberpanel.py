@@ -350,7 +350,7 @@ def test(
     print("%.2f" % (n / elapsed), "fps")
 
 
-def init(view, imageWidget, robotName=""):
+def init(view, imageWidget):
     global panels
     global docks
 
@@ -361,19 +361,16 @@ def init(view, imageWidget, robotName=""):
 
     panel = ScreenGrabberPanel(view, imageWidget)
     action = app.addDockAction(
-        "ActionScreenGrabberPanel" + robotName,
+        "ActionScreenGrabberPanel",
         "Screen Grabber",
         os.path.join(os.path.dirname(__file__), "images/video_record.png"),
         append=True,
     )
     dock = app.addWidgetToDock(
-        panel.widget, action=action, associatedRobotName=robotName
+        panel.widget, action=action
     )
     # app.getRobotSelector().associateWidgetWithRobot(action, robotName)
 
     dock.hide()
-
-    panels[robotName] = panel
-    docks[robotName] = dock
 
     return panel

@@ -38,12 +38,12 @@ class RobotViewBehaviors(object):
         self.view = view
         self.viewBehaviors = viewbehaviors.ViewBehaviors(view)
         self.robotViewBehaviors = RobotViewEventFilter(self, view)
-        self.robotName = _robotSystem.robotName
-
-        self.robotSystem = _robotSystem
-        self.robotModel = self.robotSystem.robotStateModel
-        if app.getMainWindow() is not None:
-            self.robotLinkSelector = RobotLinkSelector()
+        # self.robotName = _robotSystem.robotName
+        #
+        # self.robotSystem = _robotSystem
+        # self.robotModel = self.robotSystem.robotStateModel
+        # if app.getMainWindow() is not None:
+        #     self.robotLinkSelector = RobotLinkSelector()
 
         viewbehaviors.registerContextMenuActions(self.getRobotActions)
 
