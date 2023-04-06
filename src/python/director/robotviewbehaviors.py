@@ -48,12 +48,8 @@ class RobotViewBehaviors(object):
         viewbehaviors.registerContextMenuActions(self.getRobotActions)
 
     def resetCameraToRobot(self, view):
-        link = drcargs.getRobotConfig(self.robotName)["pelvisLink"]
 
-        t = self.robotModel.getLinkFrame(link)
-        if t is None:
-            t = vtk.vtkTransform()
-
+        t = vtk.vtkTransform()
         focalPoint = [0.0, 0.0, 0.25]
         position = [-4.0, -2.0, 2.25]
         t.TransformPoint(focalPoint, focalPoint)
@@ -738,8 +734,9 @@ class RobotViewEventFilter(ViewEventFilter):
 
         if key == "r":
             consumed = True
-            if self.viewBehaviors.robotModel is not None:
-                self.viewBehaviors.resetCameraToRobot(self.view)
+            self.viewBehaviors.resetCameraToRobot(self.view)
+            # if self.viewBehaviors.robotModel is not None:
+            #     self.viewBehaviors.resetCameraToRobot(self.view)
 
         if key == "t":  # aka 'top'
             consumed = True

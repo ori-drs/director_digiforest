@@ -44,30 +44,6 @@ class ToggleImageViewHandler(object):
             self.manager.hide()
 
 
-class RobotGridUpdater(object):
-    def __init__(self, gridFrame, robotModel, jointController, z_offset=0):
-        self.gridFrame = gridFrame
-        self.robotModel = robotModel
-        self.jointController = jointController
-        self.robotModel.connectModelChanged(self.updateGrid)
-        print("Setting z offset to {}".format(z_offset))
-        self.z_offset = z_offset
-
-    def setZOffset(self, z_offset):
-        self.z_offset = z_offset
-        self.updateGrid(None)
-
-    def updateGrid(self, model):
-        pos = self.jointController.q[:3]
-
-        x = int(np.round(pos[0])) / 10
-        y = int(np.round(pos[1])) / 10
-        z = np.round((pos[2] - self.z_offset) * 10.0) / 10.0
-
-        t = vtk.vtkTransform()
-        t.Translate((x * 10, y * 10, z))
-        self.gridFrame.copyFrame(t)
-
 
 drcargs.args()
 app.startup(globals())
@@ -83,7 +59,7 @@ orbit = cameracontrol.OrbitController(view)
 showPolyData = segmentation.showPolyData
 updatePolyData = segmentation.updatePolyData
 
-
+#TODO refactor robotviewbehaviors
 from director import robotviewbehaviors
 robotViewBehavior = robotviewbehaviors.RobotViewBehaviors(view, None)
 

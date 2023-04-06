@@ -36,7 +36,6 @@ set(python_files
   director/objectcollection.py
   director/objectmodel.py
   director/opendatahandler.py
-  director/otdfmodel.py
   director/outputconsole.py
   director/perception.py
   director/perceptionmeta.py
@@ -51,7 +50,6 @@ set(python_files
   director/robotstate.py
   director/robotposegui.py
   director/robotsystem.py
-  director/roboturdf.py
   director/robotviewbehaviors.py
   director/sceneloader.py
   director/screengrabberpanel.py
