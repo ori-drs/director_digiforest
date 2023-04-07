@@ -28,7 +28,6 @@ set(python_files
   director/imageview.py
   director/imageviewapp.py
   director/ioutils.py
-  director/lcmUtils.py
   director/mainwindowapp.py
   director/measurementpanel.py
   director/meshmanager.py
@@ -38,8 +37,6 @@ set(python_files
   director/outputconsole.py
   director/perception.py
   director/perceptionmeta.py
-  director/planplayback.py
-  director/playbackpanel.py
   director/pointpicker.py
   director/pointselector.py
   director/propertyanimation.py

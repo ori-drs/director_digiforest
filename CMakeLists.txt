@@ -85,7 +85,4 @@ set(DD_INSTALL_PYTHON3_DIR ${DD_INSTALL_LIB_DIR}/python${PYTHON_VERSION_MAJOR}/d
 # build project
 add_subdirectory(src)
 
-# documentation
-add_subdirectory(docs)
-
 include(cmake/dd-post-build.cmake)
