@@ -18,10 +18,8 @@ from director import cameraview
 from director import drcargs
 from director import framevisualization
 from director import objectmodel as om
-from director import robotsystem
 from director import screengrabberpanel
 from director import segmentation
-from director import segmentationpanel
 from director import viewcolors
 from director import viewframes
 from director import visualization as vis

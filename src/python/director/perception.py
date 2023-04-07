@@ -9,7 +9,6 @@ from PythonQt import QtCore, QtGui
 import director.objectmodel as om
 from director import cameraview
 from director import drcargs
-from director import robotstate
 from director.timercallback import TimerCallback
 from director.utime import getUtime
 from director.simpletimer import MovingAverageComputer

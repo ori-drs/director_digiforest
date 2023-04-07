@@ -17,7 +17,7 @@ from director.shallowCopy import shallowCopy
 from director import segmentationpanel
 from director import segmentation
 from director import segmentationroutines
-from director.robotlinkselector import RobotLinkSelector
+#from director.robotlinkselector import RobotLinkSelector
 from director.vieweventfilter import ViewEventFilter
 from director import viewbehaviors
 from director.utime import getUtime
