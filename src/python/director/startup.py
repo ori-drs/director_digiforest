@@ -16,17 +16,12 @@ from director import cameracontrol
 from director import cameracontrolpanel
 from director import cameraview
 from director import drcargs
-from director import framevisualization
 from director import objectmodel as om
 from director import screengrabberpanel
 from director import segmentation
 from director import viewcolors
 from director import viewframes
 from director import visualization as vis
-from director import vtkAll as vtk
-from director.debugpolydata import DebugData
-from director.pointpicker import ImagePointPicker
-from director.timercallback import TimerCallback
 
 
 class ToggleImageViewHandler(object):

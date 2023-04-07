@@ -37,7 +37,7 @@ class RobotViewBehaviors(object):
     def __init__(self, view, _robotSystem):
         self.view = view
         self.viewBehaviors = viewbehaviors.ViewBehaviors(view)
-        self.robotViewBehaviors = RobotViewEventFilter(self, view)
+        self.robotViewBehaviors = RobotViewEventFilter(view)
         # self.robotName = _robotSystem.robotName
         #
         # self.robotSystem = _robotSystem
@@ -663,15 +663,6 @@ def getRobotActions(view, pickedObj, pickedPoint):
                 (None, None),
                 ("Copy Pointcloud", onCopyPointCloud),
                 ("Merge Pointcloud Into", onMergeIntoPointCloud),
-                ("Segment Ground", onSegmentGround),
-                ("Segment Table", onSegmentTableScene),
-                ("Segment Drill Aligned", onSegmentDrillAlignedWithTable),
-                ("Local Plane Fit", onLocalPlaneFit),
-                ("Orient with Horizontal", onOrientToMajorPlane),
-                ("Arrow Glyph", onArrowGlyph),
-                ("Disk Glyph", onDiskGlyph),
-                ("Cache Pick Point", onCachePickedPoint),
-                (None, None),
                 ("Open Segmentation Editor", onSegmentationEditor),
             ]
         )
@@ -684,9 +675,8 @@ viewbehaviors.registerContextMenuActions(getRobotActions)
 
 class RobotViewEventFilter(ViewEventFilter):
     # TODO this class taking the class that contains it as a parameter so that it can access its functions is not ideal
-    def __init__(self, viewBehaviors, view):
+    def __init__(self, view):
         super(RobotViewEventFilter, self).__init__(view)
-        self.viewBehaviors = viewBehaviors
 
     def onMouseMove(self, event):
 
@@ -700,7 +690,6 @@ class RobotViewEventFilter(ViewEventFilter):
     def onLeftMousePress(self, event):
         if event.modifiers() == QtCore.Qt.ControlModifier:
             displayPoint = self.getMousePositionInView(event)
-            self.viewBehaviors.newWalkingGoal(displayPoint, self.view)
             self.consumeEvent()
 
         for picker in segmentation.viewPickers:
@@ -710,21 +699,6 @@ class RobotViewEventFilter(ViewEventFilter):
             picker.onMousePress(self.getMousePositionInView(event), event.modifiers())
             self.consumeEvent()
 
-    def onLeftDoubleClick(self, event):
-
-        displayPoint = self.getMousePositionInView(event)
-
-        useHorizontalWidget = event.modifiers() == QtCore.Qt.ShiftModifier
-        if toggleFootstepWidget(displayPoint, self.view, useHorizontalWidget):
-            self.consumeEvent()
-            return
-
-        if (
-            self.viewBehaviors.robotLinkSelector
-            and self.viewBehaviors.robotLinkSelector.selectLink(displayPoint, self.view)
-        ):
-            self.consumeEvent()
-            return
 
     def onKeyPress(self, event):
 
@@ -734,14 +708,24 @@ class RobotViewEventFilter(ViewEventFilter):
 
         if key == "r":
             consumed = True
-            self.viewBehaviors.resetCameraToRobot(self.view)
-            # if self.viewBehaviors.robotModel is not None:
-            #     self.viewBehaviors.resetCameraToRobot(self.view)
+            t = vtk.vtkTransform()
+            focalPoint = [0.0, 0.0, 0.25]
+            position = [-4.0, -2.0, 2.25]
+            t.TransformPoint(focalPoint, focalPoint)
+            t.TransformPoint(position, position)
+            flyer = cameracontrol.Flyer(self.view)
+            flyer.zoomTo(focalPoint, position)
 
         if key == "t":  # aka 'top'
             consumed = True
-            if self.viewBehaviors.robotModel is not None:
-                self.viewBehaviors.resetCameraToRobotAbove(self.view)
+            t = vtk.vtkTransform()
+
+            focalPoint = [2, 0.0, 0.25]
+            position = [1, 0.0, 15.25]  # to avoid singularities
+            t.TransformPoint(focalPoint, focalPoint)
+            t.TransformPoint(position, position)
+            flyer = cameracontrol.Flyer(self.view)
+            flyer.zoomTo(focalPoint, position)
 
         if consumed:
             self.consumeEvent()
