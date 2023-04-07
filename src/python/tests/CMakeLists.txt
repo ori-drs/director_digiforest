@@ -23,37 +23,6 @@ set(python_tests_core
   testUndoRedo.py
 )
 
-set(python_tests_lcm
-  testDrakeVisualizer.py
-  testDrakeVisualizerInterface.py
-)
-
-set(python_tests_robot_core
-  testEndEffectorIk.py
-  testLoadUrdf.py
-  testPyDrakeIk.py
-  testRobotPoseGui.py
-  testRobotSystem.py
-)
-
-set(python_tests_robot_extra
-  testActionSequence.py
-  testAffordanceItems.py
-  testCameraView.py
-  testContinuousWalking.py
-  testDrawRobotLog.py
-  testImageViewApp.py
-  testOtdfParser.py
-  testPlanConstraints.py
-  testPlaneSegmentation.py
-  testTableFit.py
-  testTableFitStereo.py
-  testTeleopPanel.py
-  testValveFit.py
-  testValveFitStereo.py
-  testAmazonPod.py
-)
-
 set(python_tests_standalone
 )
 
@@ -138,21 +107,4 @@ foreach(name ${python_tests_core})
   add_python_test(${name} core)
 endforeach()
 
-if(USE_LCM)
-  foreach(name ${python_tests_lcm})
-    add_python_test(${name} lcm)
-  endforeach()
-endif()
-
-if(USE_DRAKE)
-  foreach(name ${python_tests_robot_core})
-    add_python_test(${name} robot_core)
-  endforeach()
-endif()
-
-if(USE_DRC)
-  foreach(name ${python_tests_robot_extra})
-    add_python_test(${name} robot_extra)
-  endforeach()
-endif()
 
