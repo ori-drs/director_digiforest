@@ -28,7 +28,6 @@ set(python_files
   director/imageview.py
   director/imageviewapp.py
   director/ioutils.py
-  director/jointcontrol.py
   director/lcmUtils.py
   director/mainwindowapp.py
   director/measurementpanel.py
@@ -46,10 +45,6 @@ set(python_files
   director/propertyanimation.py
   director/propertyset.py
   director/qtutils.py
-  director/robotlinkselector.py
-  director/robotstate.py
-  director/robotposegui.py
-  director/robotsystem.py
   director/robotviewbehaviors.py
   director/sceneloader.py
   director/screengrabberpanel.py
@@ -78,7 +73,6 @@ set(python_files
   director/vtkNumpy.py
 
   director/tasks/__init__.py
-  director/tasks/robottasks.py
   director/tasks/taskmanagerwidget.py
   director/tasks/taskuserpanel.py
 
