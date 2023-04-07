@@ -6,7 +6,6 @@ set(python_files
   director/affordanceitems.py
   director/affordancemanager.py
   director/affordancepanel.py
-  director/affordanceurdf.py
   director/affordanceviewbehaviors.py
   director/applogic.py
   director/appsettings.py
@@ -89,12 +88,6 @@ set(python_files
   director/digiforest/imageloader.py
   director/digiforest/objectpicker.py
 
-  urdf_parser_py/__init__.py
-  urdf_parser_py/sdf.py
-  urdf_parser_py/urdf.py
-  urdf_parser_py/xml_reflection/__init__.py
-  urdf_parser_py/xml_reflection/basics.py
-  urdf_parser_py/xml_reflection/core.py
   )
 
 

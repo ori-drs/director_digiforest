@@ -3,7 +3,6 @@ from director.debugpolydata import DebugData
 from director import transformUtils
 from director import objectmodel as om
 from director import affordanceitems
-from director import affordanceurdf
 from director.uuidutil import newUUID
 import director.vtkAll as vtk
 import numpy as np
