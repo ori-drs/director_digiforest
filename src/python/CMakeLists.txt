@@ -17,6 +17,7 @@ set(python_files
   director/cameraview.py
   director/componentgraph.py
   director/consoleapp.py
+  director/contextviewbehaviors.py
   director/debugpolydata.py
   director/drcargs.py
   director/frameupdater.py
@@ -41,7 +42,6 @@ set(python_files
   director/propertyanimation.py
   director/propertyset.py
   director/qtutils.py
-  director/robotviewbehaviors.py
   director/sceneloader.py
   director/screengrabberpanel.py
   director/segmentation.py

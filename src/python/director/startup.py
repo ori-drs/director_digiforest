@@ -15,6 +15,7 @@ from director import camerabookmarks
 from director import cameracontrol
 from director import cameracontrolpanel
 from director import cameraview
+from director import contextviewbehaviors
 from director import drcargs
 from director import objectmodel as om
 from director import screengrabberpanel
@@ -59,12 +60,7 @@ groundHeight = 0.0
 viewFrame = segmentation.transformUtils.frameFromPositionAndRPY([1, 1, groundHeight + 1.5], [0, 0, -120])
 segmentationroutines.SegmentationContext.initWithUser(groundHeight, viewFrame)
 
-
-from director import robotviewbehaviors
-robotViewBehavior = robotviewbehaviors.RobotViewBehaviors(view, None)
-# robotViewBehaviors = robotviewbehaviors.RobotViewEventFilter(view)
-# viewbehaviors.registerContextMenuActions(self.getRobotActions)
-
+robotViewBehavior = contextviewbehaviors.ContextViewBehaviors(view)
 
 # setup
 useLightColorScheme = True
