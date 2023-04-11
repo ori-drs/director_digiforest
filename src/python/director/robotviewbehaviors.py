@@ -17,7 +17,6 @@ from director.shallowCopy import shallowCopy
 from director import segmentationpanel
 from director import segmentation
 from director import segmentationroutines
-#from director.robotlinkselector import RobotLinkSelector
 from director.vieweventfilter import ViewEventFilter
 from director import viewbehaviors
 from director.utime import getUtime
@@ -45,7 +44,7 @@ class RobotViewBehaviors(object):
         # if app.getMainWindow() is not None:
         #     self.robotLinkSelector = RobotLinkSelector()
 
-        viewbehaviors.registerContextMenuActions(self.getRobotActions)
+        #viewbehaviors.registerContextMenuActions(self.getRobotActions)
 
     def resetCameraToRobot(self, view):
 

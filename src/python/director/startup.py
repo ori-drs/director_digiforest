@@ -19,6 +19,8 @@ from director import drcargs
 from director import objectmodel as om
 from director import screengrabberpanel
 from director import segmentation
+from director import segmentationpanel
+from director import segmentationroutines
 from director import viewcolors
 from director import viewframes
 from director import visualization as vis
@@ -52,9 +54,16 @@ orbit = cameracontrol.OrbitController(view)
 showPolyData = segmentation.showPolyData
 updatePolyData = segmentation.updatePolyData
 
-#TODO refactor robotviewbehaviors
+# init segmentation routines
+groundHeight = 0.0
+viewFrame = segmentation.transformUtils.frameFromPositionAndRPY([1, 1, groundHeight + 1.5], [0, 0, -120])
+segmentationroutines.SegmentationContext.initWithUser(groundHeight, viewFrame)
+
+
 from director import robotviewbehaviors
 robotViewBehavior = robotviewbehaviors.RobotViewBehaviors(view, None)
+# robotViewBehaviors = robotviewbehaviors.RobotViewEventFilter(view)
+# viewbehaviors.registerContextMenuActions(self.getRobotActions)
 
 
 # setup
