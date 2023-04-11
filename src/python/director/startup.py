@@ -20,7 +20,6 @@ from director import drcargs
 from director import objectmodel as om
 from director import screengrabberpanel
 from director import segmentation
-from director import segmentationpanel
 from director import segmentationroutines
 from director import viewcolors
 from director import viewframes

@@ -26,7 +26,6 @@ set(python_files
   director/framevisualization.py
   director/geometryencoder.py
   director/imageview.py
-  director/imageviewapp.py
   director/ioutils.py
   director/mainwindowapp.py
   director/measurementpanel.py
@@ -35,22 +34,18 @@ set(python_files
   director/objectmodel.py
   director/opendatahandler.py
   director/outputconsole.py
-  director/perception.py
   director/perceptionmeta.py
   director/pointpicker.py
   director/pointselector.py
   director/propertyanimation.py
   director/propertyset.py
   director/qtutils.py
-  director/sceneloader.py
   director/screengrabberpanel.py
   director/segmentation.py
-  director/segmentationpanel.py
   director/segmentationroutines.py
   director/shallowCopy.py
   director/simpletimer.py
   director/skybox.py
-  director/splinewidget.py
   director/startup.py
   director/tasklaunchpanel.py
   director/timercallback.py

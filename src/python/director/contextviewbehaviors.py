@@ -5,7 +5,6 @@ import director.visualization as vis
 from director import affordanceitems
 from director import callbacks
 from director import cameracontrol
-from director import splinewidget
 from director import transformUtils
 from director.debugpolydata import DebugData
 from director.pointpicker import PlacerWidget
@@ -14,7 +13,6 @@ from director import applogic as app
 from director import vtkAll as vtk
 from director import filterUtils
 from director.shallowCopy import shallowCopy
-from director import segmentationpanel
 from director import segmentation
 from director import segmentationroutines
 from director.vieweventfilter import ViewEventFilter
@@ -192,12 +190,6 @@ def getRobotActions(view, pickedObj, pickedPoint):
         handFrame.copyFrame(t)
         pickedObj._renderAllViews()
 
-    def onSplineLeft():
-        splinewidget.planner.newSpline(pickedObj, "left")
-
-    def onSplineRight():
-        splinewidget.planner.newSpline(pickedObj, "right")
-
     def onSegmentGround():
         groundPoints, scenePoints = segmentation.removeGround(pointCloudObj.polyData)
         vis.showPolyData(
@@ -287,8 +279,8 @@ def getRobotActions(view, pickedObj, pickedPoint):
         if pointCloudObj.getProperty("Name") in allPointClouds:
             pointCloudObj.setProperty("Visible", False)
 
-    def onSegmentationEditor():
-        segmentationpanel.activateSegmentationMode(pointCloudObj.polyData)
+    # def onSegmentationEditor():
+    #     segmentationpanel.activateSegmentationMode(pointCloudObj.polyData)
 
     actions = []
 
@@ -298,7 +290,7 @@ def getRobotActions(view, pickedObj, pickedPoint):
                 (None, None),
                 ("Copy Pointcloud", onCopyPointCloud),
                 ("Merge Pointcloud Into", onMergeIntoPointCloud),
-                ("Open Segmentation Editor", onSegmentationEditor),
+                #("Open Segmentation Editor", onSegmentationEditor),
             ]
         )
 

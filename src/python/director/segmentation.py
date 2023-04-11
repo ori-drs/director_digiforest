@@ -642,16 +642,7 @@ def getCurrentScanBundle(useVoxelGrid=False):
 
 
 def getCurrentRevolutionData(useVoxelGrid=False):
-    from director import perception
-
-    revPolyData = perception._multisenseItem.model.revPolyData
-    if not revPolyData or not revPolyData.GetNumberOfPoints():
-        return getCurrentScanBundle()
-
-    if useVoxelGrid:
-        revPolyData = applyVoxelGrid(revPolyData, leafSize=0.015)
-
-    return addCoordArraysToPolyData(revPolyData)
+    return getCurrentScanBundle()
 
 
 def getDisparityPointCloud(
