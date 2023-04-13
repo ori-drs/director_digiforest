@@ -77,6 +77,10 @@ class Flyer(TimerCallback):
             newPosition += self.positionZoom * (newFocalPoint - newPosition)
             # newPosition = newFocalPoint - self.positionZoom*(newFocalPoint - newPosition)
 
+        print("newFocalPoint:", newFocalPoint)
+        print("oldFocalPoint:", oldFocalPoint)
+        print("oldPosition:", oldPosition)
+        print("newPosition:", newPosition)
         c.SetFocalPoint(newFocalPoint)
         c.SetPosition(newPosition)
         c.SetViewUp(oldViewUp)

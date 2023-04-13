@@ -115,6 +115,7 @@ def showRightClickMenu(displayPoint, view):
 
 def zoomToPick(displayPoint, view):
     pickedPoint, prop, _ = vis.pickProp(displayPoint, view)
+    print("Cursor position", displayPoint, "Picked point:", pickedPoint)
     if not prop:
         return
     flyer = cameracontrol.Flyer(view)
