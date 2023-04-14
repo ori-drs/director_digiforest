@@ -11,9 +11,7 @@ from PythonQt import QtGui
 from director import actionhandlers
 from director import affordancepanel
 from director import affordancemanager
-from director import camerabookmarks
 from director import cameracontrol
-from director import cameracontrolpanel
 from director import cameraview
 from director import contextviewbehaviors
 from director import drcargs
@@ -84,11 +82,6 @@ viewFramesHandler = viewframes.ViewFramesSizeHandler(
 if not useLightColorScheme:
     viewBackgroundLightHandler.action.trigger()
 
-cameraBooksmarksPanel = camerabookmarks.init(view)
-
-cameraControlPanel = cameracontrolpanel.CameraControlPanel(view)
-app.addWidgetToDock(cameraControlPanel.widget, action=None).hide()
-
 app.setCameraTerrainModeEnabled(view, True)
 app.resetCamera(viewDirection=[-1, 0, 0], view=view)
 
@@ -102,13 +95,6 @@ imageViewHandler = ToggleImageViewHandler(imageWidget)
 #
 
 screengrabberpanel.init(view, imageWidget)
-affordanceManager = affordancemanager.AffordanceObjectModelManager(
-    view
-)
-affordancePanel = affordancepanel.init(
-    view, affordanceManager
-)
-
 
 print("===== director setup complete, calling scripts for further setup =====")
 

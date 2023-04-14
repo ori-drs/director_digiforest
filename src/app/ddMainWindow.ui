@@ -33,7 +33,6 @@
     </property>
     <addaction name="ActionOpen"/>
     <addaction name="ActionSaveData"/>
-    <addaction name="ActionExportUrdf"/>
     <addaction name="separator"/>
     <addaction name="ActionQuit"/>
    </widget>
@@ -43,10 +42,7 @@
     </property>
     <addaction name="ActionPythonConsole"/>
     <addaction name="separator"/>
-    <addaction name="ActionMatlabConsole"/>
     <addaction name="separator"/>
-    <addaction name="ActionBotSpy"/>
-    <addaction name="ActionSignalScope"/>
     <addaction name="ActionToggleStereoRender"/>
     <addaction name="ActionToggleBackgroundLight"/>
     <addaction name="ActionToggleFramesSize"/>
@@ -114,7 +110,6 @@
     <bool>false</bool>
    </attribute>
    <addaction name="ActionPythonConsole"/>
-   <addaction name="ActionMatlabConsole"/>
    <addaction name="separator"/>
    <addaction name="ActionColorizeLidar"/>
    <addaction name="ActionToggleImageView"/>
@@ -244,18 +239,6 @@
     <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
-  <action name="ActionMatlabConsole">
-   <property name="icon">
-    <iconset resource="images/resources.qrc">
-     <normaloff>:/images/matlab_logo.png</normaloff>:/images/matlab_logo.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Matlab Console</string>
-   </property>
-   <property name="shortcut">
-    <string>F9</string>
-   </property>
-  </action>
   <action name="ActionToggleStereoRender">
    <property name="checkable">
     <bool>true</bool>
@@ -363,27 +346,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
-   </property>
-  </action>
-  <action name="ActionExportUrdf">
-   <property name="text">
-    <string>&amp;Export to URDF...</string>
-   </property>
-  </action>
-  <action name="ActionBotSpy">
-   <property name="text">
-    <string>&amp;Bot Spy</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+B</string>
-   </property>
-  </action>
-  <action name="ActionSignalScope">
-   <property name="text">
-    <string>&amp;Signal Scope</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+I</string>
    </property>
   </action>
   <action name="ActionColorizeLidar">
