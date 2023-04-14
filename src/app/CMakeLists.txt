@@ -142,9 +142,6 @@ include_directories(
 )
 
 set(moc_srcs)
-qt_wrap_cpp(moc_srcs
-  ddDrakeModel.h
-)
 
 list(APPEND srcs
   DirectorRigidBodyTree.cpp
@@ -159,34 +156,9 @@ list(APPEND srcs
   ${moc_srcs}
 )
 
-list(APPEND srcs ddDrakeModel.cpp)
-
-list(APPEND wrap_files
-  wrapped_methods_drake.txt
-)
-
 list(APPEND deps
   ${catkin_LIBRARIES} ${ASSIMP_LIBRARIES}
 )
-
-if (USE_ROS)
-
-  set(moc_srcs)
-  qt_wrap_cpp(moc_srcs
-    ddROSSubscriber.h
-    ddROSTfListener.h
-    ddROSInit.h
-  )
-
-  list(APPEND srcs
-    ${moc_srcs} ddROSTfListener.cpp
-  )
-
-  list(APPEND wrap_files
-    wrapped_methods_ros.txt
-  )
-
-endif()
 
 add_library(ddApp SHARED ${srcs})
 target_link_libraries(ddApp ${deps} )
@@ -195,10 +167,8 @@ if(pkg_deps)
   use_pkg(ddApp ${pkg_deps})
 endif()
 
-set(_install_targets ddApp directorPython drake-visualizer)
+set(_install_targets ddApp directorPython)
 
-add_executable(drake-visualizer drakeVisualizerApp.cpp)
-target_link_libraries(drake-visualizer ddApp)
 
 # Build main executable
 add_executable(director main.cpp)
@@ -214,12 +184,6 @@ install(TARGETS ${_install_targets}
     RUNTIME DESTINATION ${DD_INSTALL_BIN_DIR}
     LIBRARY DESTINATION ${DD_INSTALL_LIB_DIR}
     ARCHIVE DESTINATION ${DD_INSTALL_LIB_DIR})
-
-if(APPLE)
-  install(DIRECTORY drake-visualizer.app
-      DESTINATION ${DD_INSTALL_BIN_DIR}
-      USE_SOURCE_PERMISSIONS)
-endif()
 
 add_custom_command(OUTPUT ${decorator_file}
   COMMAND ${PYTHON_EXECUTABLE} WrapPythonQt.py

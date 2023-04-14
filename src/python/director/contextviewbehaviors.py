@@ -289,7 +289,7 @@ def getRobotActions(view, pickedObj, pickedPoint):
             [
                 (None, None),
                 ("Copy Pointcloud", onCopyPointCloud),
-                ("Merge Pointcloud Into", onMergeIntoPointCloud),
+                #("Merge Pointcloud Into", onMergeIntoPointCloud),
                 #("Open Segmentation Editor", onSegmentationEditor),
             ]
         )

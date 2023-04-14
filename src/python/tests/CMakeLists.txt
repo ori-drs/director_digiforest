@@ -25,16 +25,6 @@ set(python_tests_core
 set(python_tests_standalone
 )
 
-
-# todo
-# need this special case until robotlocomotion/lcmtypes are added to openhumanoids
-if(NOT USE_DRC)
-  list(APPEND python_tests_lcm testTreeViewerInterface.py)
-  list(APPEND python_tests_lcm testTreeViewerClient.py)
-  list(APPEND python_tests_lcm testTreeViewerPolyLine.py)
-endif()
-
-
 # Tests are run by default on the default robot
 #
 # If intending to test on a particular robot only, please set _extra_args to the
