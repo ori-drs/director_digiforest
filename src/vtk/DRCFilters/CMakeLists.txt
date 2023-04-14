@@ -112,32 +112,6 @@ if (USE_DRC_PLANE_SEG)
   list(APPEND deps ${PLANE_SEG_LIBRARIES} ${PCL_LIBRARIES})
 endif()
 
-if(USE_OCTOMAP)
-
-  setup_qt4()
-
-  find_library(OCTOVIS_LIBRARY octovis)
-  list(APPEND sources vtkOctomap.cxx)
-  list(APPEND deps ${LIBBOT_LIBRARIES} ${OPENGL_LIBRARIES} ${OCTOVIS_LIBRARY})
-
-  list(APPEND pkg_deps
-    lcmtypes_octomap-utils
-  )
-
-endif()
-
-if (USE_COLLECTIONS)
-  find_package(catkin  REQUIRED COMPONENTS vs_lcmtypes)
-
-
-  list(APPEND sources vtkCollections.cxx)
-  list(APPEND deps ${OPENGL_LIBRARIES})
-
-  #list(APPEND pkg_deps
-  #  lcmtypes_visualization
-  #)
-endif()
-
 set(library_name vtkDRCFilters)
 add_library(${library_name} ${sources} ${EXTRA_SRCS})
 target_link_libraries(${library_name} ${deps})
