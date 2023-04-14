@@ -131,7 +131,6 @@ find_package(catkin  REQUIRED COMPONENTS
 
 
 ##################################
-#Compiles the RigidBodyTree model of the robot
 find_package(Eigen REQUIRED)
 find_package(ASSIMP REQUIRED)
 
@@ -142,19 +141,6 @@ include_directories(
 )
 
 set(moc_srcs)
-
-list(APPEND srcs
-  DirectorRigidBodyTree.cpp
-  treefksolverposfull_recursive.cpp
-)
-
-list(APPEND srcs
-  convertCollada.cpp
-)
-
-list(APPEND srcs
-  ${moc_srcs}
-)
 
 list(APPEND deps
   ${catkin_LIBRARIES} ${ASSIMP_LIBRARIES}
