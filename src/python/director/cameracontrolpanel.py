@@ -42,42 +42,6 @@ class PolyDataFrameConverter(cameracontrol.TargetFrameConverter):
     def canConvert(cls, obj):
         return hasattr(obj, "getChildFrame")
 
-
-class RobotFrameConverter(cameracontrol.TargetFrameConverter):
-    def __init__(self, robotModel):
-        self.robotModel = robotModel
-        self.targetFrame = vis.FrameItem("robot frame", vtk.vtkTransform(), None)
-        self.callbackId = robotModel.connectModelChanged(self.onModelChanged)
-        self.updateTargetFrame()
-
-    def updateTargetFrame(self):
-        q = self.robotModel.model.getJointPositions()
-
-        # previous version: broken because getJointPositions is no longer ordered with pos,rpy
-        # pos = q[:3]
-        # rpy = np.degrees(q[3:6])
-
-        n = self.robotModel.model.getJointNames()
-        pos = [0, 0, 0]
-        rpy = [0, 0, 0]
-        pos[0] = q[n.index("base_x")]
-        pos[1] = q[n.index("base_y")]
-        pos[2] = q[n.index("base_z")]
-        rpy[0] = q[n.index("base_roll")]
-        rpy[1] = q[n.index("base_pitch")]
-        rpy[2] = q[n.index("base_yaw")]
-
-        transform = transformUtils.frameFromPositionAndRPY(pos, rpy)
-        self.targetFrame.copyFrame(transform)
-
-    def onModelChanged(self, robotModel):
-        self.updateTargetFrame()
-
-    @classmethod
-    def canConvert(cls, obj):
-        return hasattr(obj, "connectModelChanged")
-
-
 class CameraControlPanel(object):
     def __init__(self, view):
 
@@ -158,7 +122,7 @@ class CameraControlPanel(object):
 
         self.onAbortPick()
 
-        converters = [PolyDataFrameConverter, RobotFrameConverter]
+        converters = [PolyDataFrameConverter]
 
         for converter in converters:
             if converter.canConvert(obj):

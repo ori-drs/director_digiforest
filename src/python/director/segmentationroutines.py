@@ -131,14 +131,6 @@ class SegmentationContext(object):
             )
 
     @staticmethod
-    def initWithRobot(model, robotName=""):
-        SegmentationContext.initContext(
-            RobotModelGroundHeightProvider(model, robotName),
-            RobotModelViewProvider(model),
-            robotName,
-        )
-
-    @staticmethod
     def initWithCamera(camera, userGroundHeight, providerName="defaultCamera"):
         SegmentationContext.initContext(
             UserGroundHeightProvider(userGroundHeight),
@@ -155,33 +147,6 @@ class SegmentationContext(object):
             UserViewProvider(userViewFrame, viewAxis),
             providerName,
         )
-
-
-class RobotModelGroundHeightProvider(object):
-    def __init__(self, model, robotName=""):
-        self.model = model
-        self.robotName = robotName
-
-    def getGroundHeight(self):
-        return self.model.getFeetMidPoint().GetPosition()[2]
-
-
-class RobotModelViewProvider(object):
-    def __init__(self, model):
-        self.model = model
-
-    def getViewFrame(self):
-        return self.model.getLinkFrame(self.model.getHeadLink())
-
-    def getViewOrigin(self):
-        headFrame = self.model.getLinkFrame(self.model.getHeadLink())
-        return np.array(headFrame.GetPosition())
-
-    def getViewDirection(self):
-        headFrame = self.model.getLinkFrame(self.model.getHeadLink())
-        viewDirection = [1, 0, 0]
-        headFrame.TransformVector(viewDirection, viewDirection)
-        return np.array(viewDirection)
 
 
 class UserGroundHeightProvider(object):

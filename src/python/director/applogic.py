@@ -32,15 +32,6 @@ def getMainWindow():
     return _mainWindow
 
 
-def getRobotSelector():
-    """
-    Return the robotselector object for this director instance. Specifying a robot to display will show UI components
-    corresponding only to that robot.
-    :return: RobotSelector object
-    """
-    return getMainWindow().toolBar().findChild("QWidget", "RobotSelector")
-
-
 def quit():
     QtGui.QApplication.instance().quit()
 
@@ -326,13 +317,6 @@ class MenuActionToggleHelper(ActionToggleHelper):
 
 def onCurrentViewChanged(previousView, currentView):
     updateToggleTerrainAction(currentView)
-
-
-def addToolbarMacro(name, func, robotName=""):
-    toolbar = getMainWindow().macrosToolBar()
-    action = toolbar.addAction(name)
-    action.connect("triggered()", func)
-    getRobotSelector().associateWidgetWithRobot(action, robotName)
 
 
 def removeToolbarMacro(name):
