@@ -80,9 +80,7 @@ class ForestPayloadsPanel(QObject):
         self.height_maps_dir_name = "height_maps_in_map"
         self.image_manager = image_manager
         self.tree_data = np.array([])
-        
-        # Variable to help with automatic height colorization
-        self.medianPoseHeight = 0
+
         
     def run_input_directory(self):
         return os.path.expanduser(self.ui.loadGraphText.text)
@@ -311,7 +309,8 @@ class ForestPayloadsPanel(QObject):
         height_mesh = ioutils.readPolyData(height_map_file)
         height_mesh = segmentation.addCoordArraysToPolyDataXYZ( height_mesh )
         vis.showPolyData(height_mesh, 'Height Mesh', 'Color By', 'z',
-                         colorByRange=[self.medianPoseHeight-4,self.medianPoseHeight+4], parent=parent)
+                         colorByRange=[self.pose_graph_loader.median_pose_height-4,
+                                       self.pose_graph_loader.median_pose_height+4], parent=parent)
 
     def terrain_mapping(self, filename, height_map_file):
         cloud_pc = pcl.PointCloud_PointNormal()
