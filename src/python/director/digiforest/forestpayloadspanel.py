@@ -2,7 +2,6 @@ import PythonQt
 from PythonQt import QtCore, QtGui, QtUiTools
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot
 from director import applogic as app
-from director.utime import getUtime
 from director import transformUtils
 from director import objectmodel as om
 from director import visualization as vis
@@ -15,10 +14,8 @@ from director import applogic as app
 from director import segmentation
 from director import vtkNumpy
 from matplotlib import image as matimage
-import matplotlib.pyplot as plt
-import vtkAll as vtk
 from director.digiforest.objectpicker import ObjectPicker
-from vtk.util import numpy_support
+from director.digiforest.posegraphloader import PoseGraphLoader
 
 import digiforest_drs as df
 import pcl
@@ -55,8 +52,6 @@ class ForestPayloadsPanel(QObject):
         assert uifile.open(uifile.ReadOnly)
 
         self.widget = loader.load(uifile)
-        self.file_data = np.array([])
-        self.exp_num = 0
         self.view = app.getDRCView()
         self.ui = WidgetDict(self.widget.children())
         
@@ -114,15 +109,46 @@ class ForestPayloadsPanel(QObject):
             self.parse_pose_graph(newDir)
             
     def parse_pose_graph(self, directory):
+        self.pose_graph_loader = PoseGraphLoader(directory)
         pose_graph_file = os.path.join(directory, "slam_poses.csv")
         if os.path.isfile(pose_graph_file):
-            self.load_csv_file(pose_graph_file)
+            if not self.pose_graph_loader.load_csv_file(pose_graph_file):
+                print("Failed to read data from file: ", pose_graph_file)
+                return
         else:
             pose_graph_file = os.path.join(directory, "slam_pose_graph.g2o")
             if not os.path.isfile(pose_graph_file):
                 print("Cannot find slam_poses.csv or slam_pose_graph.g2o in", directory)
             else:
-                self.load_g2o_file(pose_graph_file)
+                if not self.pose_graph_loader.load_g2o_file(pose_graph_file):
+                    print("Failed to read data from file: ", pose_graph_file)
+                    return
+
+        # Displaying pose graph data
+        colors = [QtGui.QColor(0, 255, 0), QtGui.QColor(255, 0, 0), QtGui.QColor(0, 0, 255),
+                  QtGui.QColor(255, 255, 0), QtGui.QColor(255, 0, 255), QtGui.QColor(0, 255, 255)]
+        for i in range(0, self.pose_graph_loader.num_experiments):
+            exp_num = i+1
+            # payload nodes
+            obj = vis.showPolyData(
+                self.pose_graph_loader.polydata_payloads[i],
+                "payload_" + str(exp_num), parent="slam"
+            )
+            obj.setProperty("Point Size", 8)
+            obj.setProperty("Color", colors[(exp_num) % len(colors)])
+            vis.addChildFrame(obj)
+            # non payload nodes
+            obj = vis.showPolyData(
+                self.pose_graph_loader.polydata_non_payloads[i],
+                "experiment_"+str(exp_num), visible=False, parent="slam"
+            )
+            obj.setProperty("Point Size", 6)
+            obj.setProperty("Color", colors[(exp_num-1) % len(colors)])
+            vis.addChildFrame(obj)
+            # draw the trajectory
+            self._draw_line(self.pose_graph_loader.trajectories[i],
+                            name="trajectory_"+str(exp_num), parent="slam")
+
 
     def find_tree(self, picked_coords):
 
@@ -154,7 +180,7 @@ class ForestPayloadsPanel(QObject):
         '''
         print("LoadPointCloud", picked_coords)
         nodeFound = False
-        for row in self.file_data:
+        for row in self.pose_graph_loader.file_data:
             if np.isclose(picked_coords[0], row[3]) and np.isclose(picked_coords[1], row[4]) \
                     and np.isclose(picked_coords[2], row[5]):
                 expNum = int(row[0]) // 1000 + 1
@@ -270,32 +296,6 @@ class ForestPayloadsPanel(QObject):
     #     transformedPolyData = filterUtils.transformPolyData(poly_data, node_transform)
     #     return transformedPolyData
 
-    def load_g2o_file(self, filename):
-        print("loading", filename)
-        self.file_data = np.loadtxt(filename, delimiter=" ", dtype='<U21', usecols=np.arange(0,11))
-        #only keep vertex SE3 rows
-        self.file_data = np.delete(self.file_data, np.where(
-                       (self.file_data[:, 0] == "EDGE_SE3:QUAT"))[0], axis=0)
-
-        #rearrange colums
-        self.file_data = np.delete(self.file_data, 0, axis=1)
-        sec = self.file_data[:, 8]
-        nsec = self.file_data[:, 9]
-        # removing sec and nsec columns
-        self.file_data = np.delete(self.file_data, 8, axis=1)
-        self.file_data = np.delete(self.file_data, 8, axis=1)
-        # reinsert them at correct location
-        self.file_data = np.insert(self.file_data, 1, sec, axis=1)
-        self.file_data = np.insert(self.file_data, 2, nsec, axis=1)
-
-        self.file_data = self.file_data.astype(float, copy=False)
-        self._load_file_data(filename)
-
-    def load_csv_file(self, filename):
-        print("loading", filename)
-        self.file_data = np.loadtxt(filename, delimiter=",", dtype=np.float64, skiprows=1)
-        self._load_file_data(filename)
-
     def load_all_height_maps(self):
         height_map_dir = os.path.join(self.data_dir, self.height_maps_dir_name)
         if os.path.isdir(height_map_dir):
@@ -376,7 +376,7 @@ class ForestPayloadsPanel(QObject):
         vis.showPolyData(cloud_pd, name, visible=visible, parent=parent)
 
     def _start_node_picking(self, ):
-        object_list = [name + str(i) for i in range(1, self.exp_num+1) for name in ("payload_", "experiment_")]
+        object_list = [name + str(i) for i in range(1, self.pose_graph_loader.num_experiments+1) for name in ("payload_", "experiment_")]
 
         picker = ObjectPicker(number_of_points=1, view=app.getCurrentRenderView(), object_list=object_list)
         segmentation.addViewPicker(picker)
@@ -434,13 +434,7 @@ class ForestPayloadsPanel(QObject):
         color_img[:, :, 2] = image
         return color_img
 
-    def _get_image_dir(self, exp_num):
-        return os.path.join(self.data_dir, "../exp" + str(exp_num), "individual_images")
-
-    def _get_image_fileName(self, images_dir, sec, nsec):
-        return os.path.join(images_dir, "image_" + str(sec) + "_" + self._convert_nano_secs_to_string(nsec) + ".png")
-
-    def _draw_line(self, points, parent):
+    def _draw_line(self, points, name, parent):
         d = DebugData()
 
         for i in range(points.shape[0]-1):
@@ -448,101 +442,26 @@ class ForestPayloadsPanel(QObject):
                       [points[i+1, 0], points[i+1, 1], points[i+1, 2]])
 
         line = vis.updatePolyData(
-            d.getPolyData(), "trajectory", parent=parent
+            d.getPolyData(), name, parent=parent
         )
         line.setProperty("Color", QtGui.QColor(240, 128, 0))
         vis.addChildFrame(line)
 
+    # def _get_image_dir(self, exp_num):
+    #     return os.path.join(self.data_dir, "../exp" + str(exp_num), "individual_images")
+    #
+    # def _get_image_fileName(self, images_dir, sec, nsec):
+    #     return os.path.join(images_dir, "image_" + str(sec) + "_" + self._convert_nano_secs_to_string(nsec) + ".png")
 
-    def _load_file_data(self, filename):
-        '''
-        Display the pose graph data
-        '''
-        colors = [QtGui.QColor(0, 255, 0), QtGui.QColor(255, 0, 0), QtGui.QColor(0, 0, 255),
-                  QtGui.QColor(255, 255, 0), QtGui.QColor(255, 0, 255), QtGui.QColor(0, 255, 255)]
-        exp_num = 1
-        data = np.array([]) # point coordinates
-        timestamps = np.array([], dtype=np.int64) # sec, nsec
-        index_row = 1
-        for row in self.file_data:
-            # assumes that an experiment has less than 10000 elements
-            if row[0] > exp_num*10000 or index_row == self.file_data.shape[0]:
-                self.exp_num += 1
-                # draw the trajectory
-                self._draw_line(data, "slam")
-                # drawing the pose graph
-                # finding the payload nodes
-                payload_dir = os.path.join(self.data_dir, "payload_clouds_in_map")
-                if os.path.isdir(payload_dir):
-                    payload_files = [f for f in os.listdir(payload_dir) if os.path.isfile(os.path.join(payload_dir, f))]
-                    points_payload = np.array([])  # point coordinates
-                    index_payload = np.array([], dtype=np.int64)
-                    for file in payload_files:
-                        split = re.split('\W+|_', file)
-                        if len(split) >= 3:
-                            sec = int(split[1])
-                            nsec= int(split[2])
-                            index = np.where(np.logical_and(timestamps[:, 0] == sec, timestamps[:, 1] == nsec))
 
-                            if len(index) >= 1 and index[0].size == 1:
-                                index_payload = np.append(index_payload, int(index[0][0]))
-
-                    if index_payload.size > 0:
-                        points_payload = data[index_payload, :]
-                        data = np.delete(data, index_payload, axis=0)
-                        timestamps = np.delete(timestamps, index_payload, axis=0)
-                        poly_data = vnp.numpyToPolyData(points_payload)
-
-                        if not poly_data or not poly_data.GetNumberOfPoints():
-                            print("Failed to read data from file: ", filename)
-                            return
-
-                        zvalues = vtkNumpy.getNumpyFromVtk(poly_data, "Points")[:, 2]
-                        self.medianPoseHeight = np.median(zvalues)
-
-                        obj = vis.showPolyData(
-                            poly_data, "payload_" + str(exp_num), parent="slam"
-                        )
-                        obj.setProperty("Point Size", 8)
-                        obj.setProperty("Color", colors[(exp_num) % len(colors)])
-                        vis.addChildFrame(obj)
-
-                # loading the non-payload nodes
-
-                poly_data = vnp.numpyToPolyData(data)
-
-                if not poly_data or not poly_data.GetNumberOfPoints():
-                    print("Failed to read data from file: ", filename)
-                    return
-
-                obj = vis.showPolyData(
-                    poly_data, "experiment_"+str(exp_num), visible=False, parent="slam"
-                )
-                obj.setProperty("Point Size", 6)
-                obj.setProperty("Color", colors[(exp_num-1) % len(colors)])
-                vis.addChildFrame(obj)
-                exp_num += 1
-                data = np.array([])
-                timestamps = np.array([])
-            else:
-                position = np.array([row[3], row[4], row[5]])
-                timestamp = np.array([row[1], row[2]], dtype=np.int64)
-                if data.shape[0] != 0:
-                    data = np.vstack((data, position))
-                    timestamps = np.vstack((timestamps, timestamp))
-                else:
-                    data = position
-                    timestamps = timestamp
-            index_row += 1
-
-    def _start_picking(self):
-        picker = segmentation.PointPicker(numberOfPoints=1, polyDataName='combined_cloud.pcd')
-        picker.view = app.getDRCView()
-        segmentation.addViewPicker(picker)
-        picker.enabled = True
-        picker.drawLines = False
-        picker.start()
-        picker.annotationFunc = functools.partial(self._selectBestImage)
+    # def _start_picking(self):
+    #     picker = segmentation.PointPicker(numberOfPoints=1, polyDataName='combined_cloud.pcd')
+    #     picker.view = app.getDRCView()
+    #     segmentation.addViewPicker(picker)
+    #     picker.enabled = True
+    #     picker.drawLines = False
+    #     picker.start()
+    #     picker.annotationFunc = functools.partial(self._selectBestImage)
 
 
         
