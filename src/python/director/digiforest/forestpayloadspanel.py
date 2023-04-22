@@ -76,9 +76,6 @@ class ForestPayloadsPanel(QObject):
         self.ui.loadHeightmaps.connect(
             "clicked()", self.load_all_height_maps
         )
-        # self.ui.pickButtonCombinedPointCloud.connect(
-        #     "clicked()", self._start_picking
-        # )
         self.data_dir = None
         self.height_maps_dir_name = "height_maps_in_map"
         self.image_manager = image_manager
@@ -219,10 +216,6 @@ class ForestPayloadsPanel(QObject):
         if os.path.isfile(tree_description_file):
             self.load_cylinders(tree_description_file)
 
-        #images_dir = os.path.join(self.data_dir, "individual_images")
-        # if os.path.isdir(images_dir):
-        #     self.loadImages(images_dir, sec, self._convert_nano_secs_to_string(nsec))
-
     def load_cylinders(self, filename):
         '''
         From a csv file describing the trees as cylinders, load and display them
@@ -258,20 +251,6 @@ class ForestPayloadsPanel(QObject):
             vis.addChildFrame(obj)
 
             id += 1
-
-    def load_images(self, directory, sec, nsec):
-        list_subfolders = [f.path for f in os.scandir(directory) if f.is_dir()]
-        for image_folder in list_subfolders:
-            image_file = os.path.join(image_folder, "image_"+str(sec)+"_"+
-                                      self._convert_nano_secs_to_string(nsec)+".png")
-            if not os.path.isfile(image_file):
-                print("Cannot load image file", image_file)
-                return
-
-            cam_num = os.path.basename(os.path.normpath(image_folder))
-            self._load_image(image_file, cam_num)
-
-
 
     def load_pointcloud(self, filename, trans, quat):
         print("Loading : ", filename)
@@ -413,27 +392,6 @@ class ForestPayloadsPanel(QObject):
             s = '0' + s
         return s
 
-    def _load_image(self, image_file, image_id):
-        polydata = self._load_image_to_vtk(image_file)
-        self.image_manager.addImage(image_id, polydata)
-
-    def _load_image_to_vtk(self, filename):
-        image_numpy = matimage.imread(filename)
-        image_numpy = np.multiply(image_numpy, 255).astype(np.uint8)
-        image_color = self._convert_image_to_color(image_numpy)
-        image = vtkNumpy.numpyToImageData(image_color)
-        return image
-
-    def _convert_image_to_color(self, image):
-        if len(image.shape) > 2:
-            return image
-
-        color_img = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.uint8)
-        color_img[:, :, 0] = image
-        color_img[:, :, 1] = image
-        color_img[:, :, 2] = image
-        return color_img
-
     def _draw_line(self, points, name, parent):
         d = DebugData()
 
@@ -452,6 +410,27 @@ class ForestPayloadsPanel(QObject):
     #
     # def _get_image_fileName(self, images_dir, sec, nsec):
     #     return os.path.join(images_dir, "image_" + str(sec) + "_" + self._convert_nano_secs_to_string(nsec) + ".png")
+
+    # def _load_image(self, image_file, image_id):
+    #     polydata = self._load_image_to_vtk(image_file)
+    #     self.image_manager.addImage(image_id, polydata)
+    #
+    # def _load_image_to_vtk(self, filename):
+    #     image_numpy = matimage.imread(filename)
+    #     image_numpy = np.multiply(image_numpy, 255).astype(np.uint8)
+    #     image_color = self._convert_image_to_color(image_numpy)
+    #     image = vtkNumpy.numpyToImageData(image_color)
+    #     return image
+    #
+    # def _convert_image_to_color(self, image):
+    #     if len(image.shape) > 2:
+    #         return image
+    #
+    #     color_img = np.zeros((image.shape[0], image.shape[1], 3), dtype=np.uint8)
+    #     color_img[:, :, 0] = image
+    #     color_img[:, :, 1] = image
+    #     color_img[:, :, 2] = image
+    #     return color_img
 
 
     # def _start_picking(self):
