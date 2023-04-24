@@ -78,6 +78,7 @@ class ForestPayloadsPanel(QObject):
         )
         self.data_dir = None
         self.height_maps_dir_name = "height_maps_in_map"
+        self.point_clouds_dir_name = "payload_clouds_in_map"
         self.image_manager = image_manager
         self.tree_data = np.array([])
 
@@ -85,7 +86,7 @@ class ForestPayloadsPanel(QObject):
     def run_input_directory(self):
         return os.path.expanduser(self.ui.loadGraphText.text)
 
-    def chooseDirectory(self):
+    def choose_directory(self):
         return QtGui.QFileDialog.getExistingDirectory(
             app.getMainWindow(), "Choose directory...", self.run_input_directory()
         )    
@@ -97,14 +98,14 @@ class ForestPayloadsPanel(QObject):
         return name
 
     def on_choose_run_input_dir(self):
-        newDir = self.chooseDirectory()
+        newDir = self.choose_directory()
         if newDir:
             self.data_dir = newDir
             self.ui.loadGraphText.text = self.get_shorter_name_last(newDir)
             self.parse_pose_graph(newDir)
             
     def parse_pose_graph(self, directory):
-        self.pose_graph_loader = PoseGraphLoader(directory)
+        self.pose_graph_loader = PoseGraphLoader(directory, self.point_clouds_dir_name)
         pose_graph_file = os.path.join(directory, "slam_poses.csv")
         if os.path.isfile(pose_graph_file):
             if not self.pose_graph_loader.load_csv_file(pose_graph_file):
@@ -196,7 +197,7 @@ class ForestPayloadsPanel(QObject):
         height_map_file = os.path.join(height_map_dir, local_height_map)
 
         local_cloud = "cloud_"+str(sec)+"_"+self._convert_nano_secs_to_string(nsec)+".pcd"
-        payload_cloud_dir = os.path.join(self.data_dir, "payload_clouds_in_map")
+        payload_cloud_dir = os.path.join(self.data_dir, self.point_clouds_dir_name)
         tree_description_file = os.path.join(self.data_dir, "trees.csv")
 
         local_cloud_file = os.path.join(local_pointcloud_dir, local_cloud)
@@ -256,7 +257,9 @@ class ForestPayloadsPanel(QObject):
             print("File doesn't exist", filename)
             return
 
-        poly_data = ioutils.readPolyData(filename, ignoreSensorPose=True)
+        #offset loaded point cloud
+        offset = self.pose_graph_loader.first_node_position(exp_num=1)
+        poly_data = ioutils.readPolyData(filename, ignoreSensorPose=True, offset=offset)
 
         if not poly_data or not poly_data.GetNumberOfPoints():
             print("Error cannot load file")
@@ -378,7 +381,7 @@ class ForestPayloadsPanel(QObject):
 
     def _generate_height_maps(self):
         height_map_dir = os.path.join(self.data_dir, self.height_maps_dir_name)
-        payload_cloud_dir = os.path.join(self.data_dir, "payload_clouds_in_map")
+        payload_cloud_dir = os.path.join(self.data_dir, self.point_clouds_dir_name)
         df.generate_height_maps(payload_cloud_dir, height_map_dir)
 
     def _convert_nano_secs_to_string(self, nsec):

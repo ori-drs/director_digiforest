@@ -7,7 +7,8 @@ import os
 import re
 
 class PoseGraphLoader():
-    def __init__(self, data_dir):
+    def __init__(self, data_dir: str, point_clouds_dir_name: str):
+        self.point_clouds_dir_name = point_clouds_dir_name
         self.num_experiments = 0
         self.data_dir = data_dir
         self.polydata_payloads = [] # payload of each experiment contained in the pose graph file
@@ -45,6 +46,9 @@ class PoseGraphLoader():
     def median_pose_height(self):
         return self.median_pose_height
 
+    def first_node_position(self, exp_num: int):
+        return [self.file_data[0][3], self.file_data[0][4], self.file_data[0][5]]
+
     def _load_file_data(self, filename: str) -> str:
         '''
         Display the pose graph data
@@ -60,7 +64,7 @@ class PoseGraphLoader():
                 self.trajectories.append(data)
                 # drawing the pose graph
                 # finding the payload nodes
-                payload_dir = os.path.join(self.data_dir, "payload_clouds_in_map")
+                payload_dir = os.path.join(self.data_dir, self.point_clouds_dir_name)
                 if os.path.isdir(payload_dir):
                     payload_files = [f for f in os.listdir(payload_dir) if os.path.isfile(os.path.join(payload_dir, f))]
                     points_payload = np.array([])  # point coordinates
@@ -90,13 +94,6 @@ class PoseGraphLoader():
                         zvalues = vnp.getNumpyFromVtk(poly_data, "Points")[:, 2]
                         self.median_pose_height = np.median(zvalues)
 
-                        # obj = vis.showPolyData(
-                        #     poly_data, "payload_" + str(exp_num), parent="slam"
-                        # )
-                        # obj.setProperty("Point Size", 8)
-                        # obj.setProperty("Color", colors[(exp_num) % len(colors)])
-                        # vis.addChildFrame(obj)
-
                 # loading the non-payload nodes
 
                 poly_data = vnp.numpyToPolyData(data)
@@ -107,12 +104,6 @@ class PoseGraphLoader():
 
                 self.polydata_non_payloads.append(poly_data)
 
-                # obj = vis.showPolyData(
-                #     poly_data, "experiment_"+str(exp_num), visible=False, parent="slam"
-                # )
-                # obj.setProperty("Point Size", 6)
-                # obj.setProperty("Color", colors[(exp_num-1) % len(colors)])
-                # vis.addChildFrame(obj)
                 exp_num += 1
                 data = np.array([])
                 timestamps = np.array([])

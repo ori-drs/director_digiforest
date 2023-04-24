@@ -1,18 +1,20 @@
 import os
 from . import vtkAll as vtk
+import vtkPCLIOCustomPython
 from .shallowCopy import shallowCopy
 import shelve
 import os.path
 
 
-def readPolyData(filename, computeNormals=False, ignoreSensorPose=False):
+def readPolyData(filename, computeNormals=False, ignoreSensorPose=False, offset=None):
 
     ext = os.path.splitext(filename)[1].lower()
 
     readers = {
         ".vtp": vtk.vtkXMLPolyDataReader,
         ".vtk": vtk.vtkPolyDataReader,
-        ".ply": vtk.vtkPLYReader,
+        ".ply": vtkPCLIOCustomPython.vtkPLYReaderCustom, # custom reader that supports double
+        #".ply": vtk.vtkPLYReader,
         ".obj": vtk.vtkOBJReader,
         ".stl": vtk.vtkSTLReader,
     }
@@ -28,6 +30,8 @@ def readPolyData(filename, computeNormals=False, ignoreSensorPose=False):
     reader = readers[ext]()
     if ext == ".pcd":
         reader.IgnoreSensorPose(ignoreSensorPose)
+    if ext == ".ply" and offset is not None:
+        reader.SetOffset(offset[0], offset[1], offset[2])
     reader.SetFileName(filename)
     reader.Update()
     polyData = shallowCopy(reader.GetOutput())
