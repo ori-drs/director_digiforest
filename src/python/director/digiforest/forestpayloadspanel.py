@@ -78,6 +78,7 @@ class ForestPayloadsPanel(QObject):
         )
         self.data_dir = None
         self.height_maps_dir_name = "height_maps_in_map"
+        #self.point_clouds_dir_name = "payload_clouds_in_gnss"
         self.point_clouds_dir_name = "payload_clouds_in_map"
         self.image_manager = image_manager
         self.tree_data = np.array([])
@@ -123,6 +124,7 @@ class ForestPayloadsPanel(QObject):
         # Displaying pose graph data
         colors = [QtGui.QColor(0, 255, 0), QtGui.QColor(255, 0, 0), QtGui.QColor(0, 0, 255),
                   QtGui.QColor(255, 255, 0), QtGui.QColor(255, 0, 255), QtGui.QColor(0, 255, 255)]
+
         for i in range(0, self.pose_graph_loader.num_experiments):
             exp_num = i+1
             # payload nodes
@@ -196,21 +198,29 @@ class ForestPayloadsPanel(QObject):
         local_height_map = "height_map_"+str(sec)+"_"+self._convert_nano_secs_to_string(nsec)+".ply"
         height_map_file = os.path.join(height_map_dir, local_height_map)
 
-        local_cloud = "cloud_"+str(sec)+"_"+self._convert_nano_secs_to_string(nsec)+".pcd"
+        local_cloud = "cloud_"+str(sec)+"_"+self._convert_nano_secs_to_string(nsec)
         payload_cloud_dir = os.path.join(self.data_dir, self.point_clouds_dir_name)
         tree_description_file = os.path.join(self.data_dir, "trees.csv")
 
-        local_cloud_file = os.path.join(local_pointcloud_dir, local_cloud)
-        payload_cloud_file = os.path.join(payload_cloud_dir, local_cloud)
-        if os.path.isfile(payload_cloud_file):
-            self.load_pointcloud(payload_cloud_file, trans, quat)
-        elif os.path.isfile(local_cloud_file):
-            self.load_pointcloud(local_cloud_file, trans, quat)
+        # local_cloud_file = os.path.join(local_pointcloud_dir, local_cloud)
+        # payload_cloud_file = os.path.join(payload_cloud_dir, local_cloud)
+        cloud_file = None
+        for ext in [".pcd", ".ply"]:
+            cloud_file = os.path.join(payload_cloud_dir, local_cloud+ext)
+            if os.path.isfile(cloud_file):
+                self.load_pointcloud(cloud_file, trans, quat)
+                break
+            cloud_file = os.path.join(local_pointcloud_dir, local_cloud + ext)
+            if os.path.isfile(cloud_file):
+                self.load_pointcloud(cloud_file, trans, quat)
+                break
 
-        if os.path.isfile(payload_cloud_file):
-            self.terrain_mapping(payload_cloud_file, height_map_file)
-        elif os.path.isfile(local_cloud_file):
-            self.terrain_mapping(local_cloud_file, height_map_file)
+        if cloud_file is None:
+            # point cloud not found return
+            return
+
+        self.terrain_mapping(cloud_file, height_map_file)
+
 
         if os.path.isfile(tree_description_file):
             self.load_cylinders(tree_description_file)
@@ -317,7 +327,15 @@ class ForestPayloadsPanel(QObject):
 
     def terrain_mapping(self, filename, height_map_file):
         cloud_pc = pcl.PointCloud_PointNormal()
-        cloud_pc._from_pcd_file(filename.encode('utf-8'))
+        ext = os.path.splitext(filename)[1].lower()
+        if ext == ".pcd":
+            cloud_pc._from_pcd_file(filename.encode('utf-8'))
+        elif ext == ".ply":
+            cloud_pc._from_ply_file(filename.encode('utf-8'))
+        else:
+            print("Cannot load", filename)
+            return
+
         self._show_pclXYZnormal(cloud_pc, "Cloud Raw", visible=False, parent=os.path.basename(filename))
 
         # remove non-up points
