@@ -28,6 +28,7 @@ import numpy as np
 import functools
 import shutil
 import threading
+import time
 
 def addWidgetsToDict(widgets, d):
 
@@ -216,6 +217,15 @@ class ForestPayloadsPanel(QObject):
         local_cloud = "cloud_"+str(sec)+"_"+self._convert_nano_secs_to_string(nsec)
         tree_description_file = os.path.join(self.data_dir, "trees.csv")
 
+        message_box = QtGui.QMessageBox()
+        message_box.setIcon(QtGui.QMessageBox.Information)
+        message_box.setText("Loading clouds, please wait.")
+        message_box.setWindowTitle("Please Wait")
+        message_box.setStandardButtons(QtGui.QMessageBox.NoButton)
+        message_box.show()
+        time.sleep(0.2)
+        QtCore.QCoreApplication.instance().processEvents()
+
         cloud_file = None
         for ext in [".pcd", ".ply"]:
             cloud_file = os.path.join(self.point_clouds_dir_name(), local_cloud + ext)
@@ -239,6 +249,7 @@ class ForestPayloadsPanel(QObject):
         else:
             self.terrain_mapping(self.converted_cloud_path, height_map_file)
 
+        message_box.accept() # closing message box
 
         if os.path.isfile(tree_description_file):
             self.load_cylinders(tree_description_file)
