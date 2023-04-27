@@ -12,10 +12,12 @@ from director import filterUtils
 from director import vtkNumpy as vnp
 from director import applogic as app
 from director import segmentation
+import director.ioutils as io
 from director import vtkNumpy
 from matplotlib import image as matimage
 from director.digiforest.objectpicker import ObjectPicker
 from director.digiforest.posegraphloader import PoseGraphLoader
+from director.digiforest.utils import convert_poly_data_to_pcd
 
 import digiforest_drs as df
 import pcl
@@ -216,10 +218,13 @@ class ForestPayloadsPanel(QObject):
                 break
 
         if cloud_file is None:
-            # point cloud not found return
+            # point cloud not found, return
             return
 
-        self.terrain_mapping(cloud_file, height_map_file)
+        # the pcl class used for terrain mapping only support pcd files
+        # so make sure that the cloud is a pcd file
+        basename = os.path.splitext(cloud_file)[0]
+        self.terrain_mapping(basename+".pcd", height_map_file)
 
 
         if os.path.isfile(tree_description_file):
@@ -270,6 +275,8 @@ class ForestPayloadsPanel(QObject):
         #offset loaded point cloud
         offset = self.pose_graph_loader.first_node_position(exp_num=1)
         poly_data = ioutils.readPolyData(filename, ignoreSensorPose=True, offset=offset)
+
+        convert_poly_data_to_pcd(poly_data, filename)
 
         if not poly_data or not poly_data.GetNumberOfPoints():
             print("Error cannot load file")
@@ -328,10 +335,9 @@ class ForestPayloadsPanel(QObject):
     def terrain_mapping(self, filename, height_map_file):
         cloud_pc = pcl.PointCloud_PointNormal()
         ext = os.path.splitext(filename)[1].lower()
+        #python-pcl only works with pcd files
         if ext == ".pcd":
             cloud_pc._from_pcd_file(filename.encode('utf-8'))
-        elif ext == ".ply":
-            cloud_pc._from_ply_file(filename.encode('utf-8'))
         else:
             print("Cannot load", filename)
             return

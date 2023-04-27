@@ -40,12 +40,7 @@ def onFileOpenDialog():
 
 def onOpenFile(filename):
 
-    if filename.lower().endswith("urdf"):
-        onOpenUrdf(filename)
-    elif filename.lower().endswith("otdf"):
-        onOpenOtdf(filename)
-    else:
-        onOpenGeometry(filename)
+    onOpenGeometry(filename)
 
 
 def onOpenGeometry(filename):
@@ -75,45 +70,6 @@ def onOpenVrml(filename):
         vis.showPolyData(mesh, "mesh %d" % i, color=color, parent=folder)
 
 
-def onOpenUrdf(filename):
-
-    model = roboturdf.openUrdf(filename, app.getCurrentRenderView())
-    if not model:
-        app.showErrorMessage(
-            "Failed to read urdf file: %s" % filename, title="Read urdf error"
-        )
-
-
-def onOpenOtdf(filename):
-    model = otdfmodel.openOtdf(filename, app.getCurrentRenderView())
-
-
-def onFileExportUrdf():
-    obj = om.getActiveObject()
-    if not obj or not isinstance(obj, otdfmodel.OtdfModelItem):
-        app.showErrorMessage(
-            "Please select an OTDF object", title="OTDF object not selected"
-        )
-        return
-
-    mainWindow = app.getMainWindow()
-    filename = QtGui.QFileDialog.getSaveFileName(
-        mainWindow,
-        "Save Data...",
-        getDefaultDirectory(),
-        "URDF (*.urdf)",
-        "URDF (*.urdf)",
-    )
-
-    if not os.path.splitext(filename)[1]:
-        filename += ".urdf"
-
-    storeDefaultDirectory(filename)
-    urdfString = obj.parser.getUrdfFromOtdf()
-    urdfFile = open(filename, "w")
-    urdfFile.write(urdfString)
-    urdfFile.close()
-
 
 def onFileSaveData():
 
@@ -121,25 +77,7 @@ def onFileSaveData():
     if not obj:
         app.showErrorMessage("Please select an object", title="No object selected")
         return
-    if isinstance(obj, otdfmodel.OtdfModelItem):
-        mainWindow = app.getMainWindow()
-        filename = QtGui.QFileDialog.getSaveFileName(
-            mainWindow,
-            "Save Data...",
-            getDefaultDirectory(),
-            "OTDF (*.otdf)",
-            "OTDF (*.otdf)",
-        )
-
-        if not os.path.splitext(filename)[1]:
-            filename += ".otdf"
-
-        storeDefaultDirectory(filename)
-        otdfString = obj.parser.getUpdatedOtdf()
-        otdfFile = open(filename, "w")
-        otdfFile.write(otdfString)
-        otdfFile.close()
-    elif hasattr(obj, "polyData"):
+    if hasattr(obj, "polyData"):
         mainWindow = app.getMainWindow()
         fileFilters = "PLY (*.ply);;STL (*.stl);;VTP (*.vtp);;VTK (*.vtk)"
         defaultFilter = "VTP (*.vtp)"
@@ -180,5 +118,4 @@ def init():
 
     mainWindow.connect("fileOpen()", onFileOpenDialog)
     mainWindow.connect("fileSaveData()", onFileSaveData)
-    mainWindow.connect("fileExportUrdf()", onFileExportUrdf)
     mainWindow.connect("openOnlineHelp()", onOpenOnlineHelp)
