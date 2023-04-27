@@ -80,8 +80,6 @@ class ForestPayloadsPanel(QObject):
         )
         self.data_dir = None
         self.height_maps_dir_name = "height_maps_in_map"
-        #self.point_clouds_dir_name = "payload_clouds_in_gnss"
-        self.point_clouds_dir_name = "payload_clouds_in_map"
         self.image_manager = image_manager
         self.tree_data = np.array([])
 
@@ -106,9 +104,15 @@ class ForestPayloadsPanel(QObject):
             self.data_dir = newDir
             self.ui.loadGraphText.text = self.get_shorter_name_last(newDir)
             self.parse_pose_graph(newDir)
+
+    def point_clouds_dir_name(self):
+        return os.path.join(self.data_dir,self.ui.inputcloudcombo.currentText)
+
+    def height_map_dir(self):
+        return os.path.join(self.data_dir, self.height_maps_dir_name)
             
     def parse_pose_graph(self, directory):
-        self.pose_graph_loader = PoseGraphLoader(directory, self.point_clouds_dir_name)
+        self.pose_graph_loader = PoseGraphLoader(directory, self.point_clouds_dir_name())
         pose_graph_file = os.path.join(directory, "slam_poses.csv")
         if os.path.isfile(pose_graph_file):
             if not self.pose_graph_loader.load_csv_file(pose_graph_file):
@@ -122,6 +126,12 @@ class ForestPayloadsPanel(QObject):
                 if not self.pose_graph_loader.load_g2o_file(pose_graph_file):
                     print("Failed to read data from file: ", pose_graph_file)
                     return
+
+        # check that payload are loaded
+        if len(self.pose_graph_loader.polydata_payloads) != self.pose_graph_loader.num_experiments or \
+                len(self.pose_graph_loader.polydata_non_payloads) != self.pose_graph_loader.num_experiments:
+            print("Error while parsing the pose graph")
+            return
 
         # Displaying pose graph data
         colors = [QtGui.QColor(0, 255, 0), QtGui.QColor(255, 0, 0), QtGui.QColor(0, 0, 255),
@@ -196,19 +206,15 @@ class ForestPayloadsPanel(QObject):
             return
 
         local_pointcloud_dir = os.path.join(self.data_dir, "individual_clouds")
-        height_map_dir = os.path.join(self.data_dir, self.height_maps_dir_name)
         local_height_map = "height_map_"+str(sec)+"_"+self._convert_nano_secs_to_string(nsec)+".ply"
-        height_map_file = os.path.join(height_map_dir, local_height_map)
+        height_map_file = os.path.join(self.height_map_dir(), local_height_map)
 
         local_cloud = "cloud_"+str(sec)+"_"+self._convert_nano_secs_to_string(nsec)
-        payload_cloud_dir = os.path.join(self.data_dir, self.point_clouds_dir_name)
         tree_description_file = os.path.join(self.data_dir, "trees.csv")
 
-        # local_cloud_file = os.path.join(local_pointcloud_dir, local_cloud)
-        # payload_cloud_file = os.path.join(payload_cloud_dir, local_cloud)
         cloud_file = None
         for ext in [".pcd", ".ply"]:
-            cloud_file = os.path.join(payload_cloud_dir, local_cloud+ext)
+            cloud_file = os.path.join(self.point_clouds_dir_name(), local_cloud + ext)
             if os.path.isfile(cloud_file):
                 self.load_pointcloud(cloud_file, trans, quat)
                 break
@@ -222,9 +228,8 @@ class ForestPayloadsPanel(QObject):
             return
 
         # the pcl class used for terrain mapping only support pcd files
-        # so make sure that the cloud is a pcd file
-        basename = os.path.splitext(cloud_file)[0]
-        self.terrain_mapping(basename+".pcd", height_map_file)
+        # so make sure that the input cloud is a pcd file
+        self.terrain_mapping(self.converted_cloud_path, height_map_file)
 
 
         if os.path.isfile(tree_description_file):
@@ -248,7 +253,7 @@ class ForestPayloadsPanel(QObject):
                 continue
 
             # store some information about the trees in the polydata data structure
-            length = np.asfortranarray(np.ones(polyData.GetNumberOfPoints())*tree[6])
+            length = np.asfortranarray(np.ones(polyData.GetNumberOfPoints()) * tree[6])
             vnp.addNumpyToVtk(polyData, length, "length")
             radius = np.asfortranarray(np.ones(polyData.GetNumberOfPoints()) * tree[7])
             vnp.addNumpyToVtk(polyData, radius, "radius")
@@ -272,11 +277,12 @@ class ForestPayloadsPanel(QObject):
             print("File doesn't exist", filename)
             return
 
-        #offset loaded point cloud
+        # offset loaded point cloud
         offset = self.pose_graph_loader.first_node_position(exp_num=1)
         poly_data = ioutils.readPolyData(filename, ignoreSensorPose=True, offset=offset)
 
-        convert_poly_data_to_pcd(poly_data, filename)
+        # the following conversion is for terrain mapping
+        self.converted_cloud_path = convert_poly_data_to_pcd(poly_data, filename, self.height_map_dir())
 
         if not poly_data or not poly_data.GetNumberOfPoints():
             print("Error cannot load file")
@@ -294,7 +300,7 @@ class ForestPayloadsPanel(QObject):
     #     return transformedPolyData
 
     def load_all_height_maps(self):
-        height_map_dir = os.path.join(self.data_dir, self.height_maps_dir_name)
+        height_map_dir = self.height_map_dir()
         if os.path.isdir(height_map_dir):
             height_maps = [f for f in os.listdir(height_map_dir) if os.path.isfile(os.path.join(height_map_dir, f))]
             for height_map_file in height_maps:
@@ -311,7 +317,7 @@ class ForestPayloadsPanel(QObject):
 
     def convert_heights_mesh(self, parent, height_map_file):
         if not os.path.isfile(height_map_file):
-            pcd=pcl.PointCloud()
+            pcd = pcl.PointCloud()
             pcd.from_list(self.heights_array_raw)
             pcd.to_file(b'/tmp/height_map.pcd')
             os.system("rosrun digiforest_drs generate_mesh") # running a ROS node to convert heights to mesh - nasty!
@@ -404,9 +410,7 @@ class ForestPayloadsPanel(QObject):
         threading.Thread(target=self._generate_height_maps, daemon=True).start()
 
     def _generate_height_maps(self):
-        height_map_dir = os.path.join(self.data_dir, self.height_maps_dir_name)
-        payload_cloud_dir = os.path.join(self.data_dir, self.point_clouds_dir_name)
-        df.generate_height_maps(payload_cloud_dir, height_map_dir)
+        df.generate_height_maps(self.point_clouds_dir_name(), self.height_map_dir())
 
     def _convert_nano_secs_to_string(self, nsec):
         """Returns a 9 characters string of a nano sec value"""

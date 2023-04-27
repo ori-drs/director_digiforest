@@ -95,6 +95,41 @@
          </layout>
         </widget>
        </item>
+       
+       <item>
+        <widget class="QGroupBox" name="InputCloud">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="title">
+          <string>Input</string>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="0" column="0">
+               <widget class="QComboBox" name="inputcloudcombo">
+                 <item>
+                  <property name="text">
+                   <string>payload_clouds_in_map</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>payload_clouds_in_gnss</string>
+                  </property>
+                 </item>
+              </widget>
+          </item>
+          
+         </layout>
+        </widget>
+       </item>
+       
        <item>
         <widget class="QGroupBox" name="NodePicking">
          <property name="minimumSize">

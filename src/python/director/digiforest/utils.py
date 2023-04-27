@@ -9,18 +9,21 @@ import vtk
 import numpy as np
 from vtk.util.numpy_support import vtk_to_numpy
 
-def convert_poly_data_to_pcd(poly_data, filename: str):
+def convert_poly_data_to_pcd(poly_data, path: str,
+                             output_dir: str):
     '''
     Converts ply file to pcd
     '''
-    ext = os.path.splitext(filename)[1].lower()
-    basename = os.path.splitext(filename)[0]
+    ext = os.path.splitext(path)[1].lower()
+    filename_with_extension = os.path.basename(path)
+    filename_without_extension = os.path.splitext(filename_with_extension)[0]
+    new_path = os.path.join(output_dir, filename_without_extension)+ ".pcd"
     if ext == ".pcd":
-        return
+        return new_path
 
-    if os.path.isfile(basename + ".pcd"):
+    if os.path.isfile(new_path):
         # file already exists
-        return
+        return new_path
 
     points = vtk_to_numpy(poly_data.GetPoints().GetData())
     normals = vtk_to_numpy(poly_data.GetPointData().GetNormals())
@@ -33,6 +36,6 @@ def convert_poly_data_to_pcd(poly_data, filename: str):
     cloud = pcl.PointCloud_PointNormal()
     cloud.from_array(array)
 
-    #_ = io.writePolyData(poly_data, "/tmp/cloud.ply")
     pcl.save_PointNormal(cloud, "/tmp/cloud.pcd")
-    shutil.copyfile("/tmp/cloud.pcd", basename + ".pcd")
+    shutil.copyfile("/tmp/cloud.pcd", new_path)
+    return new_path

@@ -51,10 +51,16 @@ class PoseGraphLoader():
     def first_node_position(self, exp_num: int):
         return self.offset
 
-    def _load_file_data(self, filename: str) -> str:
+    def _load_file_data(self, filename: str) -> bool:
         '''
-        Display the pose graph data
+        Load the pose graph data
         '''
+        if not os.path.isdir(self.point_clouds_dir_name):
+            print(self.point_clouds_dir_name, "doesn't exist, cannot load pose graph")
+            return False
+
+
+
         exp_num = 1
         data = np.array([]) # point coordinates
         timestamps = np.array([], dtype=np.int64) # sec, nsec
