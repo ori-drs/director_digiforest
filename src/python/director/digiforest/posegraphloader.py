@@ -7,7 +7,7 @@ import os
 import re
 
 class PoseGraphLoader():
-    def __init__(self, data_dir: str, point_clouds_dir_name: str):
+    def __init__(self, data_dir: str, point_clouds_dir_name: str, frame: str):
         self.point_clouds_dir_name = point_clouds_dir_name
         self.num_experiments = 0
         self.data_dir = data_dir
@@ -18,9 +18,37 @@ class PoseGraphLoader():
         self.median_pose_height = 0
         self.apply_offset = True
         self.offset = None
+        self.frame = frame
+
+    def load(self) -> bool:
+        if self.frame == "map":
+            pose_graph_file = os.path.join(self.data_dir, "slam_poses.csv")
+        elif self.frame == "gnss":
+            pose_graph_file = os.path.join(self.data_dir, "slam_poses_utm.csv")
+        else:
+            return False
+
+        if os.path.isfile(pose_graph_file):
+            if not self.load_csv_file(pose_graph_file):
+                print("Failed to read data from file: ", pose_graph_file)
+                return False
+        elif self.frame == "map":
+            pose_graph_file = os.path.join(self.data_dir, "slam_pose_graph.g2o")
+            if not os.path.isfile(pose_graph_file):
+                print("Cannot find slam_poses.csv or slam_pose_graph.g2o in", self.data_dir)
+                return False
+            else:
+                if not self.load_g2o_file(pose_graph_file):
+                    print("Failed to read data from file: ", pose_graph_file)
+                    return False
+        else:
+            print("Cannot find pose graph")
+            return False
+
+        return True
+
 
     def load_g2o_file(self, filename: str) -> bool:
-        print("loading", filename)
         self.file_data = np.loadtxt(filename, delimiter=" ", dtype='<U21', usecols=np.arange(0,11))
         #only keep vertex SE3 rows
         self.file_data = np.delete(self.file_data, np.where(
@@ -41,7 +69,6 @@ class PoseGraphLoader():
         return self._load_file_data(filename)
 
     def load_csv_file(self, filename: str) -> str:
-        print("loading", filename)
         self.file_data = np.loadtxt(filename, delimiter=",", dtype=np.float64, skiprows=1)
         return self._load_file_data(filename)
 
@@ -55,11 +82,10 @@ class PoseGraphLoader():
         '''
         Load the pose graph data
         '''
+        print("loading", filename)
         if not os.path.isdir(self.point_clouds_dir_name):
             print(self.point_clouds_dir_name, "doesn't exist, cannot load pose graph")
             return False
-
-
 
         exp_num = 1
         data = np.array([]) # point coordinates

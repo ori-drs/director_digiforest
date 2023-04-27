@@ -84,6 +84,7 @@ class ForestPayloadsPanel(QObject):
         self.data_dir = None
         self.image_manager = image_manager
         self.tree_data = np.array([])
+        self.frame = "map"
 
     def on_input_cloud_changed(self):
         input = self.ui.inputcloudcombo.currentText[0:]
@@ -92,6 +93,10 @@ class ForestPayloadsPanel(QObject):
             return
         new_name = "height_maps_" + s[-2] + "_" + s[-1]
         self.ui.heightmapdir.text = new_name
+        if s[-1] == "map":
+            self.frame = "map"
+        elif s[-1] == "gnss":
+            self.frame = "gnss"
         
     def run_input_directory(self):
         return os.path.expanduser(self.ui.loadGraphText.text)
@@ -121,20 +126,10 @@ class ForestPayloadsPanel(QObject):
         return os.path.join(self.data_dir, self.ui.heightmapdir.text)
             
     def parse_pose_graph(self, directory):
-        self.pose_graph_loader = PoseGraphLoader(directory, self.point_clouds_dir_name())
-        pose_graph_file = os.path.join(directory, "slam_poses.csv")
-        if os.path.isfile(pose_graph_file):
-            if not self.pose_graph_loader.load_csv_file(pose_graph_file):
-                print("Failed to read data from file: ", pose_graph_file)
-                return
-        else:
-            pose_graph_file = os.path.join(directory, "slam_pose_graph.g2o")
-            if not os.path.isfile(pose_graph_file):
-                print("Cannot find slam_poses.csv or slam_pose_graph.g2o in", directory)
-            else:
-                if not self.pose_graph_loader.load_g2o_file(pose_graph_file):
-                    print("Failed to read data from file: ", pose_graph_file)
-                    return
+        self.pose_graph_loader = PoseGraphLoader(directory, self.point_clouds_dir_name(), self.frame)
+
+        if not self.pose_graph_loader.load():
+            return
 
         # check that payload are loaded
         if len(self.pose_graph_loader.polydata_payloads) != self.pose_graph_loader.num_experiments or \
