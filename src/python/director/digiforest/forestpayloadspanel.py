@@ -229,7 +229,11 @@ class ForestPayloadsPanel(QObject):
 
         # the pcl class used for terrain mapping only support pcd files
         # so make sure that the input cloud is a pcd file
-        self.terrain_mapping(self.converted_cloud_path, height_map_file)
+        ext = os.path.splitext(cloud_file)[1].lower()
+        if ext == ".pcd":
+            self.terrain_mapping(cloud_file, height_map_file)
+        else:
+            self.terrain_mapping(self.converted_cloud_path, height_map_file)
 
 
         if os.path.isfile(tree_description_file):
