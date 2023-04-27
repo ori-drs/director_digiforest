@@ -78,11 +78,20 @@ class ForestPayloadsPanel(QObject):
         self.ui.loadHeightmaps.connect(
             "clicked()", self.load_all_height_maps
         )
+        self.ui.inputcloudcombo.connect(
+            'currentIndexChanged(const QString&)', self.on_input_cloud_changed
+        )
         self.data_dir = None
-        self.height_maps_dir_name = "height_maps_in_map"
         self.image_manager = image_manager
         self.tree_data = np.array([])
 
+    def on_input_cloud_changed(self):
+        input = self.ui.inputcloudcombo.currentText[0:]
+        s = re.split('_', input)
+        if len(s) < 2:
+            return
+        new_name = "height_maps_" + s[-2] + "_" + s[-1]
+        self.ui.heightmapdir.text = new_name
         
     def run_input_directory(self):
         return os.path.expanduser(self.ui.loadGraphText.text)
@@ -109,7 +118,7 @@ class ForestPayloadsPanel(QObject):
         return os.path.join(self.data_dir,self.ui.inputcloudcombo.currentText)
 
     def height_map_dir(self):
-        return os.path.join(self.data_dir, self.height_maps_dir_name)
+        return os.path.join(self.data_dir, self.ui.heightmapdir.text)
             
     def parse_pose_graph(self, directory):
         self.pose_graph_loader = PoseGraphLoader(directory, self.point_clouds_dir_name())
@@ -287,7 +296,6 @@ class ForestPayloadsPanel(QObject):
 
         # the following conversion is for terrain mapping
         self.converted_cloud_path = convert_poly_data_to_pcd(poly_data, filename, self.height_map_dir())
-
         if not poly_data or not poly_data.GetNumberOfPoints():
             print("Error cannot load file")
             return

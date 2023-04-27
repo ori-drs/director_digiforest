@@ -37,5 +37,7 @@ def convert_poly_data_to_pcd(poly_data, path: str,
     cloud.from_array(array)
 
     pcl.save_PointNormal(cloud, "/tmp/cloud.pcd")
+    if not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
     shutil.copyfile("/tmp/cloud.pcd", new_path)
     return new_path
