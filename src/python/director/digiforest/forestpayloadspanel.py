@@ -425,7 +425,18 @@ class ForestPayloadsPanel(QObject):
 
     def generate_height_maps(self):
         #TODO not sure what happens if director is closed while the thread is running
-        threading.Thread(target=self._generate_height_maps, daemon=True).start()
+        thread = threading.Thread(target=self._generate_height_maps)
+        thread.start()
+        message_box = QtGui.QMessageBox()
+        message_box.setIcon(QtGui.QMessageBox.Information)
+        message_box.setText("Generating height maps, please wait.")
+        message_box.setWindowTitle("Please Wait")
+        message_box.setStandardButtons(QtGui.QMessageBox.NoButton)
+        message_box.show()
+        while thread.is_alive():
+            time.sleep(0.2)
+            QtCore.QCoreApplication.instance().processEvents()
+        message_box.accept()
 
     def _generate_height_maps(self):
         df.generate_height_maps(self.point_clouds_dir_name(), self.height_map_dir())
