@@ -17,7 +17,7 @@ from director import vtkNumpy
 from matplotlib import image as matimage
 from director.digiforest.objectpicker import ObjectPicker
 from director.digiforest.posegraphloader import PoseGraphLoader
-from director.digiforest.utils import convert_poly_data_to_pcd
+from director.digiforest.utils import convert_poly_data_to_pcd, convert_nano_secs_to_string
 
 import digiforest_drs as df
 import pcl
@@ -114,14 +114,24 @@ class ForestPayloadsPanel(QObject):
         return name
 
     def on_choose_run_input_dir(self):
-        newDir = self.choose_directory()
-        if newDir:
-            self.data_dir = newDir
-            self.ui.loadGraphText.text = self.get_shorter_name_last(newDir)
-            self.parse_pose_graph(newDir)
+        new_dir = self.choose_directory()
+        if new_dir:
+            self.data_dir = new_dir
+            self.ui.loadGraphText.text = self.get_shorter_name_last(new_dir)
+            self.parse_pose_graph(new_dir)
 
     def point_clouds_dir_name(self):
-        return os.path.join(self.data_dir,self.ui.inputcloudcombo.currentText)
+        return os.path.join(self.data_dir, self.ui.inputcloudcombo.currentText)
+
+    def input_point_clouds_for_mapping_dir_name(self):
+        '''
+        When the gnss frame is used, we need a special folder to store the converted pcd files
+        used to create the terrain maps.
+        '''
+        if self.frame == "map":
+            return self.point_clouds_dir_name()
+        else:
+            return os.path.join(self.data_dir, "tmp")
 
     def height_map_dir(self):
         return os.path.join(self.data_dir, self.ui.heightmapdir.text)
@@ -211,10 +221,10 @@ class ForestPayloadsPanel(QObject):
             return
 
         local_pointcloud_dir = os.path.join(self.data_dir, "individual_clouds")
-        local_height_map = "height_map_"+str(sec)+"_"+self._convert_nano_secs_to_string(nsec)+".ply"
+        local_height_map = "height_map_"+str(sec)+"_"+convert_nano_secs_to_string(nsec)+".ply"
         height_map_file = os.path.join(self.height_map_dir(), local_height_map)
 
-        local_cloud = "cloud_"+str(sec)+"_"+self._convert_nano_secs_to_string(nsec)
+        local_cloud = "cloud_"+str(sec)+"_"+convert_nano_secs_to_string(nsec)
         tree_description_file = os.path.join(self.data_dir, "trees.csv")
 
         message_box = QtGui.QMessageBox()
@@ -301,7 +311,8 @@ class ForestPayloadsPanel(QObject):
         poly_data = ioutils.readPolyData(filename, ignoreSensorPose=True, offset=offset)
 
         # the following conversion is for terrain mapping
-        self.converted_cloud_path = convert_poly_data_to_pcd(poly_data, filename, self.height_map_dir())
+        self.converted_cloud_path = convert_poly_data_to_pcd(poly_data, filename,
+                                                             self.input_point_clouds_for_mapping_dir_name())
         if not poly_data or not poly_data.GetNumberOfPoints():
             print("Error cannot load file")
             return
@@ -353,8 +364,8 @@ class ForestPayloadsPanel(QObject):
         height_mesh = ioutils.readPolyData(height_map_file)
         height_mesh = segmentation.addCoordArraysToPolyDataXYZ( height_mesh )
         vis.showPolyData(height_mesh, 'Height Mesh', 'Color By', 'z',
-                         colorByRange=[self.pose_graph_loader.median_pose_height-4,
-                                       self.pose_graph_loader.median_pose_height+4], parent=parent)
+                         colorByRange=[self.pose_graph_loader.median_pose_height - 4,
+                                       self.pose_graph_loader.median_pose_height + 4], parent=parent)
 
     def terrain_mapping(self, filename, height_map_file):
         cloud_pc = pcl.PointCloud_PointNormal()
@@ -424,32 +435,40 @@ class ForestPayloadsPanel(QObject):
         pass
 
     def generate_height_maps(self):
-        #TODO not sure what happens if director is closed while the thread is running
-        thread = threading.Thread(target=self._generate_height_maps)
-        thread.start()
+        #thread = threading.Thread(target=self._generate_height_maps)
+        #thread.start()
         message_box = QtGui.QMessageBox()
         message_box.setIcon(QtGui.QMessageBox.Information)
         message_box.setText("Generating height maps, please wait.")
         message_box.setWindowTitle("Please Wait")
         message_box.setStandardButtons(QtGui.QMessageBox.NoButton)
         message_box.show()
-        while thread.is_alive():
-            time.sleep(0.2)
-            QtCore.QCoreApplication.instance().processEvents()
+        time.sleep(0.2)
+        QtCore.QCoreApplication.instance().processEvents()
+
+        if self.frame == "gnss":
+            # convert all point cloud in a format that terrain mapping can understand
+            clouds = [os.path.join(self.point_clouds_dir_name(), f)
+                      for f in os.listdir(self.point_clouds_dir_name())]
+            offset = self.pose_graph_loader.first_node_position(exp_num=1)
+            for cloud in clouds:
+                if os.path.isfile(cloud):
+                    ext = os.path.splitext(cloud)[1].lower()
+                    if ext == ".ply":
+                        poly_data = ioutils.readPolyData(cloud, ignoreSensorPose=True, offset=offset)
+
+                        _ = convert_poly_data_to_pcd(poly_data, cloud,
+                                                     self.input_point_clouds_for_mapping_dir_name())
+
+            df.generate_height_maps(self.input_point_clouds_for_mapping_dir_name(),
+                                self.height_map_dir())
+
         message_box.accept()
 
-    def _generate_height_maps(self):
-        df.generate_height_maps(self.point_clouds_dir_name(), self.height_map_dir())
+    # def _generate_height_maps(self):
+    #     df.generate_height_maps(self.input_point_clouds_for_mapping_dir_name(),
+    #                             self.height_map_dir())
 
-    def _convert_nano_secs_to_string(self, nsec):
-        """Returns a 9 characters string of a nano sec value"""
-        s = str(nsec)
-        if len(s) == 9:
-            return s
-
-        for i in range(len(s) + 1, 10):
-            s = '0' + s
-        return s
 
     def _draw_line(self, points, name, parent):
         d = DebugData()
@@ -468,7 +487,7 @@ class ForestPayloadsPanel(QObject):
     #     return os.path.join(self.data_dir, "../exp" + str(exp_num), "individual_images")
     #
     # def _get_image_fileName(self, images_dir, sec, nsec):
-    #     return os.path.join(images_dir, "image_" + str(sec) + "_" + self._convert_nano_secs_to_string(nsec) + ".png")
+    #     return os.path.join(images_dir, "image_" + str(sec) + "_" + convert_nano_secs_to_string(nsec) + ".png")
 
     # def _load_image(self, image_file, image_id):
     #     polydata = self._load_image_to_vtk(image_file)

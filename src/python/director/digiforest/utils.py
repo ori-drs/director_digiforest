@@ -9,6 +9,17 @@ import vtk
 import numpy as np
 from vtk.util.numpy_support import vtk_to_numpy
 
+
+def convert_nano_secs_to_string(nsec):
+    """Returns a 9 characters string of a nano sec value"""
+    s = str(nsec)
+    if len(s) == 9:
+        return s
+
+    for i in range(len(s) + 1, 10):
+        s = '0' + s
+    return s
+
 def convert_poly_data_to_pcd(poly_data, path: str,
                              output_dir: str):
     '''
