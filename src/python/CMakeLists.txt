@@ -26,6 +26,7 @@ set(python_files
   director/framevisualization.py
   director/geometryencoder.py
   director/imageview.py
+  director/inputdialog.py
   director/ioutils.py
   director/mainwindowapp.py
   director/measurementpanel.py

@@ -2,11 +2,12 @@ import os
 from . import vtkAll as vtk
 import vtkPCLIOCustomPython
 from .shallowCopy import shallowCopy
+import director.inputdialog as inputDialog
 import shelve
 import os.path
 
 
-def readPolyData(filename, computeNormals=False, ignoreSensorPose=False, offset=None):
+def readPolyData(filename, computeNormals=False, ignoreSensorPose=False, offset=None, offsetPromptDialog=True):
 
     ext = os.path.splitext(filename)[1].lower()
 
@@ -32,7 +33,18 @@ def readPolyData(filename, computeNormals=False, ignoreSensorPose=False, offset=
         reader.IgnoreSensorPose(ignoreSensorPose)
     if ext == ".ply" and offset is not None:
         reader.SetOffset(offset[0], offset[1], offset[2])
+
     reader.SetFileName(filename)
+    if ext == ".ply" and (offset is None) and offsetPromptDialog:
+        if reader.NeedOffset():
+            offset_x = reader.GetSuggestedOffsetX()
+            offset_y = reader.GetSuggestedOffsetY()
+            offset_z = reader.GetSuggestedOffsetZ()
+            dialog = inputDialog.PointCloudOffsetInputDialog(offset_x, offset_y, offset_z)
+            if dialog.exec():
+                print(dialog.get_offset_x(), dialog.get_offset_y(), dialog.get_offset_z())
+                reader.SetOffset(dialog.get_offset_x(), dialog.get_offset_y(), dialog.get_offset_z())
+
     reader.Update()
     polyData = shallowCopy(reader.GetOutput())
     if ext == ".ply":
