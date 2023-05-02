@@ -52,3 +52,16 @@ def convert_poly_data_to_pcd(poly_data, path: str,
         os.makedirs(output_dir)
     shutil.copyfile("/tmp/cloud.pcd", new_path)
     return new_path
+
+def convert_heights_mesh(heights_array_raw, height_map_file):
+    if not os.path.isfile(height_map_file):
+        pcd = pcl.PointCloud()
+        pcd.from_list(heights_array_raw)
+        pcd.to_file(b'/tmp/height_map.pcd')
+        os.system("rosrun digiforest_drs generate_mesh") # running a ROS node to convert heights to mesh - nasty!
+        height_maps_dir = os.path.dirname(height_map_file)
+        if not os.path.isdir(height_maps_dir):
+            os.makedirs(height_maps_dir)
+        shutil.copyfile('/tmp/height_map.ply', height_map_file)
+    else:
+        print("Loading height_map", height_map_file)

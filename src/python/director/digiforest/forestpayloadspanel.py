@@ -17,7 +17,8 @@ from director import vtkNumpy
 from matplotlib import image as matimage
 from director.digiforest.objectpicker import ObjectPicker
 from director.digiforest.posegraphloader import PoseGraphLoader
-from director.digiforest.utils import convert_poly_data_to_pcd, convert_nano_secs_to_string
+from director.digiforest.utils import convert_poly_data_to_pcd, convert_nano_secs_to_string, \
+                                      convert_heights_mesh
 
 import digiforest_drs as df
 import pcl
@@ -136,7 +137,7 @@ class ForestPayloadsPanel(QObject):
     def height_map_dir(self):
         return os.path.join(self.data_dir, self.ui.heightmapdir.text)
             
-    def parse_pose_graph(self, directory):
+    def parse_pose_graph(self, directory: str):
         self.pose_graph_loader = PoseGraphLoader(directory, self.point_clouds_dir_name(), self.frame)
 
         if not self.pose_graph_loader.load():
@@ -264,7 +265,7 @@ class ForestPayloadsPanel(QObject):
         if os.path.isfile(tree_description_file):
             self.load_cylinders(tree_description_file)
 
-    def load_cylinders(self, filename):
+    def load_cylinders(self, filename: str):
         '''
         From a csv file describing the trees as cylinders, load and display them
         '''
@@ -300,7 +301,7 @@ class ForestPayloadsPanel(QObject):
 
             id += 1
 
-    def load_pointcloud(self, filename, trans, quat):
+    def load_pointcloud(self, filename: str, trans, quat):
         print("Loading : ", filename)
         if not os.path.isfile(filename):
             print("File doesn't exist", filename)
@@ -343,23 +344,6 @@ class ForestPayloadsPanel(QObject):
         else:
             print("Cannot read", height_map_dir)
 
-
-    def convert_heights_mesh(self, parent, height_map_file):
-        if not os.path.isfile(height_map_file):
-            pcd = pcl.PointCloud()
-            pcd.from_list(self.heights_array_raw)
-            pcd.to_file(b'/tmp/height_map.pcd')
-            os.system("rosrun digiforest_drs generate_mesh") # running a ROS node to convert heights to mesh - nasty!
-            height_maps_dir = os.path.dirname(height_map_file)
-            if not os.path.isdir(height_maps_dir):
-                os.makedirs(height_maps_dir)
-            shutil.copyfile('/tmp/height_map.ply', height_map_file)
-        else:
-            print("Loading height_map", height_map_file)
-
-        self._display_height_map_file(height_map_file, parent)
-
-
     def _display_height_map_file(self, height_map_file, parent):
         height_mesh = ioutils.readPolyData(height_map_file)
         height_mesh = segmentation.addCoordArraysToPolyDataXYZ( height_mesh )
@@ -367,7 +351,7 @@ class ForestPayloadsPanel(QObject):
                          colorByRange=[self.pose_graph_loader.median_pose_height - 4,
                                        self.pose_graph_loader.median_pose_height + 4], parent=parent)
 
-    def terrain_mapping(self, filename, height_map_file):
+    def terrain_mapping(self, filename: str, height_map_file: str):
         cloud_pc = pcl.PointCloud_PointNormal()
         ext = os.path.splitext(filename)[1].lower()
         #python-pcl only works with pcd files
@@ -390,7 +374,8 @@ class ForestPayloadsPanel(QObject):
 
         # get the terrain height
         self.heights_array_raw = df.getTerrainHeight(cloud)
-        self.convert_heights_mesh(os.path.basename(filename), height_map_file)
+        convert_heights_mesh(os.path.basename(filename), height_map_file)
+        self._display_height_map_file(height_map_file, parent=os.path.basename(filename))
 
         self.heights_pd = vnp.getVtkPolyDataFromNumpyPoints(self.heights_array_raw)
         obj = vis.showPolyData(self.heights_pd, 'Heights', color=[0, 1, 0], visible=False,
@@ -404,19 +389,16 @@ class ForestPayloadsPanel(QObject):
                                parent=os.path.basename(filename))
         obj.setProperty('Point Size', 10)
 
-    def _convert_pcl_to_poly_data(self, cloud):
-        polydata=vnp.getVtkPolyDataFromNumpyPoints(cloud.to_array())
-        return polydata
-
     def _show_pclXYZnormal(self, cloud_pc, name, visible, parent):
-        array_xyz = cloud_pc.to_array()[:,0:3]
+        array_xyz = cloud_pc.to_array()[:, 0:3]
         cloud_pc = pcl.PointCloud()
         cloud_pc.from_array(array_xyz)
-        cloud_pd= self._convert_pcl_to_poly_data(cloud_pc)
+        cloud_pd = vnp.getVtkPolyDataFromNumpyPoints(cloud_pc.to_array())
         vis.showPolyData(cloud_pd, name, visible=visible, parent=parent)
 
     def _start_node_picking(self, ):
-        object_list = [name + str(i) for i in range(1, self.pose_graph_loader.num_experiments+1) for name in ("payload_", "experiment_")]
+        object_list = [name + str(i) for i in range(1, self.pose_graph_loader.num_experiments+1)
+                       for name in ("payload_", "experiment_")]
 
         picker = ObjectPicker(number_of_points=1, view=app.getCurrentRenderView(), object_list=object_list)
         segmentation.addViewPicker(picker)
@@ -469,8 +451,7 @@ class ForestPayloadsPanel(QObject):
     #     df.generate_height_maps(self.input_point_clouds_for_mapping_dir_name(),
     #                             self.height_map_dir())
 
-
-    def _draw_line(self, points, name, parent):
+    def _draw_line(self, points, name: str, parent):
         d = DebugData()
 
         for i in range(points.shape[0]-1):
