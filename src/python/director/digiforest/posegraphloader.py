@@ -1,6 +1,6 @@
 from director import visualization as vis
 from director import vtkNumpy as vnp
-from PythonQt import QtCore, QtGui, QtUiTools
+from director.digiforest.coordinatesconverter import CoordinatesConverter
 
 import numpy as np
 import os
@@ -16,40 +16,37 @@ class PoseGraphLoader():
         self.trajectories = [] # trajectory for each experiments
         self.file_data = None
         self.median_pose_height = 0
-        self.apply_offset = True
         self.offset = None
         self.frame = frame
+        self.coordinates_converter = None
 
     def load(self) -> bool:
-        if self.frame == "map":
-            pose_graph_file = os.path.join(self.data_dir, "slam_poses.csv")
-        elif self.frame == "gnss":
-            pose_graph_file = os.path.join(self.data_dir, "slam_poses_utm.csv")
-        else:
-            return False
-
-        if os.path.isfile(pose_graph_file):
-            if not self.load_csv_file(pose_graph_file):
+        pose_graph_file = os.path.join(self.data_dir, "slam_pose_graph.g2o")
+        if os.path.isfile(pose_graph_file) and self.frame == "gnss":
+            if not self.load_g2o_pose_graph(pose_graph_file):
                 print("Failed to read data from file: ", pose_graph_file)
                 return False
-        elif self.frame == "map":
-            pose_graph_file = os.path.join(self.data_dir, "slam_pose_graph.g2o")
-            if not os.path.isfile(pose_graph_file):
-                print("Cannot find slam_poses.csv or slam_pose_graph.g2o in", self.data_dir)
-                return False
             else:
-                if not self.load_g2o_file(pose_graph_file):
-                    print("Failed to read data from file: ", pose_graph_file)
-                    return False
-        else:
-            print("Cannot find pose graph")
+                return True
+
+        pose_graph_file = os.path.join(self.data_dir, "slam_pose_graph.csv")
+        if not os.path.isfile(pose_graph_file):
+            print("Cannot find slam_poses.csv or slam_pose_graph.g2o in", self.data_dir)
             return False
+        else:
+            if not self.load_csv_pose_graph(pose_graph_file):
+                print("Failed to read data from file: ", pose_graph_file)
+                return False
 
         return True
 
+    def load_g2o_pose_graph(self, filename: str) -> bool:
+        self.coordinates_converter = CoordinatesConverter()
+        self.coordinates_converter.parse_g2o_file(filename)
 
-    def load_g2o_file(self, filename: str) -> bool:
-        self.file_data = np.loadtxt(filename, delimiter=" ", dtype='<U21', usecols=np.arange(0,11))
+        #self.file_data = np.loadtxt(filename, delimiter=" ", dtype='<U21', usecols=np.arange(0,11))
+        self.file_data = np.genfromtxt(filename, delimiter=" ", dtype='<U21', invalid_raise=False,
+                                       usecols=np.arange(0, 11))
         #only keep vertex SE3 rows
         self.file_data = np.delete(self.file_data, np.where(
                        (self.file_data[:, 0] == "EDGE_SE3:QUAT"))[0], axis=0)
@@ -68,7 +65,7 @@ class PoseGraphLoader():
         self.file_data = self.file_data.astype(float, copy=False)
         return self._load_file_data(filename)
 
-    def load_csv_file(self, filename: str) -> str:
+    def load_csv_pose_graph(self, filename: str) -> bool:
         self.file_data = np.loadtxt(filename, delimiter=",", dtype=np.float64, skiprows=1)
         return self._load_file_data(filename)
 
@@ -113,7 +110,7 @@ class PoseGraphLoader():
                         split = re.split('\W+|_', file)
                         if len(split) >= 3:
                             sec = int(split[1])
-                            nsec= int(split[2])
+                            nsec = int(split[2])
                             index = np.where(np.logical_and(timestamps[:, 0] == sec, timestamps[:, 1] == nsec))
 
                             if len(index) >= 1 and index[0].size == 1:
@@ -148,13 +145,10 @@ class PoseGraphLoader():
                 data = np.array([])
                 timestamps = np.array([])
             else:
-                if self.offset == None:
-                    self.offset = [row[3], row[4], row[5]]
 
-                if self.apply_offset and self.offset is not None:
-                    row[3] -= self.offset[0]
-                    row[4] -= self.offset[1]
-                    row[5] -= self.offset[2]
+                if self.offset is None and self.coordinates_converter is not None:
+                    easting, northing, alt = self.coordinates_converter.map_to_utm([row[3], row[4], row[5]])
+                    self.offset = [easting, northing, alt]
 
                 position = np.array([row[3], row[4], row[5]])
                 timestamp = np.array([row[1], row[2]], dtype=np.int64)
