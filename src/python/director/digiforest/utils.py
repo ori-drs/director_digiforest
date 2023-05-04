@@ -28,7 +28,7 @@ def convert_poly_data_to_pcd(poly_data, path: str,
     ext = os.path.splitext(path)[1].lower()
     filename_with_extension = os.path.basename(path)
     filename_without_extension = os.path.splitext(filename_with_extension)[0]
-    new_path = os.path.join(output_dir, filename_without_extension)+ ".pcd"
+    new_path = os.path.join(output_dir, filename_without_extension) + ".pcd"
     if ext == ".pcd":
         return new_path
 
@@ -53,7 +53,7 @@ def convert_poly_data_to_pcd(poly_data, path: str,
     shutil.copyfile("/tmp/cloud.pcd", new_path)
     return new_path
 
-def convert_heights_mesh(heights_array_raw, height_map_file):
+def convert_heights_mesh(heights_array_raw, height_map_file: str):
     if not os.path.isfile(height_map_file):
         pcd = pcl.PointCloud()
         pcd.from_list(heights_array_raw)

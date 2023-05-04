@@ -22,7 +22,7 @@ class PoseGraphLoader():
 
     def load(self) -> bool:
         pose_graph_file = os.path.join(self.data_dir, "slam_pose_graph.g2o")
-        if os.path.isfile(pose_graph_file) and self.frame == "gnss":
+        if os.path.isfile(pose_graph_file):
             if not self.load_g2o_pose_graph(pose_graph_file):
                 print("Failed to read data from file: ", pose_graph_file)
                 return False

@@ -374,7 +374,7 @@ class ForestPayloadsPanel(QObject):
 
         # get the terrain height
         self.heights_array_raw = df.getTerrainHeight(cloud)
-        convert_heights_mesh(os.path.basename(filename), height_map_file)
+        convert_heights_mesh(self.heights_array_raw, height_map_file)
         self._display_height_map_file(height_map_file, parent=os.path.basename(filename))
 
         self.heights_pd = vnp.getVtkPolyDataFromNumpyPoints(self.heights_array_raw)
