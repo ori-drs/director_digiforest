@@ -1,4 +1,4 @@
-from director import visualization as vis
+from director.thirdparty import transformations
 from director import vtkNumpy as vnp
 from director.digiforest.coordinatesconverter import CoordinatesConverter
 
@@ -29,7 +29,7 @@ class PoseGraphLoader():
             else:
                 return True
 
-        pose_graph_file = os.path.join(self.data_dir, "slam_pose_graph.csv")
+        pose_graph_file = os.path.join(self.data_dir, "slam_poses.csv")
         if not os.path.isfile(pose_graph_file):
             print("Cannot find slam_poses.csv or slam_pose_graph.g2o in", self.data_dir)
             return False
@@ -150,7 +150,14 @@ class PoseGraphLoader():
                     easting, northing, alt = self.coordinates_converter.map_to_utm([row[3], row[4], row[5]])
                     self.offset = [easting, northing, alt]
 
-                position = np.array([row[3], row[4], row[5]])
+                if self.coordinates_converter is not None:
+                    position = self._transform(np.array([row[3], row[4], row[5]]))
+                    row[3] = position[0]
+                    row[4] = position[1]
+                    row[5] = position[2]
+                else:
+                    position = np.array([row[3], row[4], row[5]])
+
                 timestamp = np.array([row[1], row[2]], dtype=np.int64)
                 if data.shape[0] != 0:
                     data = np.vstack((data, position))
@@ -161,4 +168,24 @@ class PoseGraphLoader():
             index_row += 1
 
         return True
+
+    def _transform(self, pos):
+        '''
+        Transform position from map frame to utm frame and apply the offset to it
+        '''
+        if self.frame != "gnss":
+            return pos
+
+        # mat = transformations.quaternion_matrix(quat)
+        # new_pos = np.dot(mat, np.array([pos[0], pos[1], pos[2], 1]))
+        # return new_pos[0:3]
+
+        new_pos = self.coordinates_converter.map_to_utm(pos)
+        new_pos[0] -= self.offset[0]
+        new_pos[1] -= self.offset[1]
+        new_pos[2] -= self.offset[2]
+        return np.array([new_pos[0], new_pos[1], new_pos[2]])
+
+
+
 

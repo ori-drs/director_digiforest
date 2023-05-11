@@ -86,6 +86,10 @@ macro(use_cpp11)
   endif()
 endmacro()
 
+macro(use_cpp14)
+  set (CMAKE_CXX_STANDARD 14)
+endmacro()
+
 
 macro(use_pkg target)
 
