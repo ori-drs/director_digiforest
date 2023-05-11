@@ -1,0 +1,4 @@
+ddGnssHandler::ddGnssHandler();
+ddGnssHandler::~ddGnssHandler();
+QVector<double> ddGnssHandler::convertWGS84toEPSG3067(const double, const double) const;
+QVector<double> ddGnssHandler::convertWGS84toEPSG25833(const double, const double) const;

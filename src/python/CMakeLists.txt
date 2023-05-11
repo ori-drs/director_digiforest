@@ -79,6 +79,7 @@ set(python_files
   director/thirdparty/pysdf.py
   director/thirdparty/toposort.py
   
+  director/digiforest/coordinatesconverter.py
   director/digiforest/forestpayloadspanel.py
   director/digiforest/imageloader.py
   director/digiforest/objectpicker.py

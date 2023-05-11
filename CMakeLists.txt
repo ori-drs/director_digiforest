@@ -73,7 +73,7 @@ option(USE_PORTMIDI "Build director with portmidi dependency." OFF)
 option(USE_ROS "Build director with ros dependency." OFF)
 option(USE_OCTOMAP "Build director with octomap dependency." OFF)
 
-use_cpp11()
+use_cpp14()
 setup_qt()
 setup_python()
 setup_pkg_config_path()

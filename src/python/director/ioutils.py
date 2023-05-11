@@ -42,7 +42,6 @@ def readPolyData(filename, computeNormals=False, ignoreSensorPose=False, offset=
             offset_z = reader.GetSuggestedOffsetZ()
             dialog = inputDialog.PointCloudOffsetInputDialog(offset_x, offset_y, offset_z)
             if dialog.exec():
-                print(dialog.get_offset_x(), dialog.get_offset_y(), dialog.get_offset_z())
                 reader.SetOffset(dialog.get_offset_x(), dialog.get_offset_y(), dialog.get_offset_z())
 
     reader.Update()

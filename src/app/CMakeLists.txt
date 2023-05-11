@@ -50,6 +50,10 @@ set(wrap_files
   wrapped_methods.txt
   ${CMAKE_CURRENT_BINARY_DIR}/wrapped_methods_qvtk.txt
   )
+  
+list(APPEND wrap_files
+  wrapped_methods_gnss.txt
+)
 
 qt_wrap_cpp(moc_srcs
   ${decorator_file}
@@ -71,6 +75,7 @@ qt_wrap_cpp(moc_srcs
   ddViewManager.h
   ddViewMenu.h
   ddVTKObjectMap.h
+  ddGnssHandler.h
   )
 
 qt_wrap_ui(ui_srcs
@@ -108,6 +113,7 @@ set(srcs
   ddViewManager.cpp
   ddViewMenu.cpp
   ddVTKObjectMap.cpp
+  ddGnssHandler.cpp
 
   vtkSimpleActorInteractor.cxx
   vtkTDxInteractorStyleCallback.cxx
@@ -132,18 +138,21 @@ find_package(catkin  REQUIRED COMPONENTS
 
 ##################################
 find_package(Eigen REQUIRED)
-find_package(ASSIMP REQUIRED)
+
+list(APPEND CMAKE_MODULE_PATH /usr/share/cmake/geographiclib/)
+find_package(GeographicLib REQUIRED)
 
 include_directories(
   ${EIGEN_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
   ${ASSIMP_INCLUDE_DIRS}
+  ${GeographicLib_INCLUDE_DIRS}
 )
 
 set(moc_srcs)
 
 list(APPEND deps
-  ${catkin_LIBRARIES} ${ASSIMP_LIBRARIES}
+  ${catkin_LIBRARIES} ${ASSIMP_LIBRARIES} ${GeographicLib_LIBRARIES}
 )
 
 add_library(ddApp SHARED ${srcs})
