@@ -11,9 +11,8 @@ class CoordinatesConverter:
 
     def __init__(self):
         self.t_enu_map = None
-        #self.t_enu_map_quat = None # w,x,y,z
         self.lla_ref = None
-        self.gnss_handler = PythonQt.dd.ddGnssHandler()
+        #self.gnss_handler = PythonQt.dd.ddGnssHandler()
 
     def parse_g2o_file(self, geo_filename: str):
 
@@ -22,7 +21,6 @@ class CoordinatesConverter:
             if len(row) > 0:
                 if row[0] == "GNSS_LLA_TO_MAP":
                     position = [float(row[1]), float(row[2]), float(row[3])]
-                    #self.t_enu_map_quat = transformations.quaternion_inverse([float(row[7]), float(row[4]), float(row[5]), float(row[6])])
                     self.t_enu_map = np.identity(4)
                     self.t_enu_map = transformations.quaternion_matrix([float(row[7]), float(row[4]), float(row[5]), float(row[6])])
                     self.t_enu_map[:3, 3] = position
@@ -50,8 +48,8 @@ class CoordinatesConverter:
 
 
     def latlong_to_utm(self, lat, lon):
-        #easting, northing, zone_num, zone_letter = from_latlon(lat, lon)
-        easting, northing = self.gnss_handler.convertWGS84toEPSG3067(lat, lon)
+        easting, northing, zone_num, zone_letter = from_latlon(lat, lon)
+        #easting, northing = self.gnss_handler.convertWGS84toEPSG3067(lat, lon)
         return easting, northing
 
 
