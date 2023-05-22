@@ -431,14 +431,16 @@ class ForestPayloadsPanel(QObject):
         self.tile_ticker.display_merged_cloud()
         object_list = ["merged_tile_cloud"]
 
-        picker = ObjectPicker(number_of_points=1, view=app.getCurrentRenderView(), object_list=object_list)
-        segmentation.addViewPicker(picker)
-        picker.enabled = True
-        picker.start()
-        picker.annotation_func = functools.partial(self.tile_ticker.find_tile)
+        self._picker = ObjectPicker(number_of_points=1, view=app.getCurrentRenderView(), object_list=object_list,
+                                    multiple_selection=True)
+        segmentation.addViewPicker(self._picker)
+        self._picker.enabled = True
+        self._picker.start()
+        self._picker.annotation_func = functools.partial(self.tile_ticker.find_tile)
 
     def _stop_tile_picking(self):
         self.tile_ticker.display_merged_cloud(visible=False)
+        self._picker.finish()
 
     def generate_height_maps(self):
         #thread = threading.Thread(target=self._generate_height_maps)

@@ -24,7 +24,6 @@ class TilePicker():
     def load_merged_cloud(self):
         obj = om.findObjectByName("merged_tile_cloud")
         if obj:
-            self.display_merged_cloud()
             return
 
         offset = self.pose_graph_loader.offset
@@ -42,6 +41,7 @@ class TilePicker():
         obj = om.findObjectByName("merged_tile_cloud")
         if obj:
             obj.setProperty("Visible", visible)
+            obj.setProperty("Alpha", 0.6)
 
     def load_individual_tile(self, tile_id: int):
         tile_filename = "tile_" + str(tile_id) + ".ply"

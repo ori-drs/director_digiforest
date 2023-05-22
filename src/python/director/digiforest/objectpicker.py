@@ -5,7 +5,8 @@ from director.debugpolydata import DebugData
 from PythonQt import QtCore, QtGui, QtUiTools
 
 class ObjectPicker(TimerCallback):
-    def __init__(self, view, pick_type="points", number_of_points=3, object_list=None):
+    def __init__(self, view, pick_type="points", number_of_points=1, object_list=None,
+                 multiple_selection=False):
         TimerCallback.__init__(self)
         self.targetFps = 30
         self.enabled = False
@@ -13,6 +14,7 @@ class ObjectPicker(TimerCallback):
         self.number_of_points = number_of_points
         self.annotation_obj = None
         self.object_list = object_list
+        self.multiple_selection = multiple_selection
         self.view = view
         self.clear()
 
@@ -27,21 +29,22 @@ class ObjectPicker(TimerCallback):
 
     def onMousePress(self, displayPoint, modifiers=None):
         for i in range(self.number_of_points):
-            if self.points[i] is None:
-                self.points[i] = self.hover_pos
-                break
+            # if self.points[i] is None:
+            #     self.points[i] = self.hover_pos
+            #     break
+            self.points[i] = self.hover_pos
 
         if self.points[-1] is not None:
+            points = [p.copy() for p in self.points]
+            if self.annotation_func is not None:
+                self.annotation_func(*points)
+
+        if not self.multiple_selection:
             self.finish()
 
     def finish(self):
-
         self.enabled = False
         om.removeFromObjectModel(self.annotation_obj)
-
-        points = [p.copy() for p in self.points]
-        if self.annotation_func is not None:
-            self.annotation_func(*points)
 
     def handleRelease(self, displayPoint):
         pass
