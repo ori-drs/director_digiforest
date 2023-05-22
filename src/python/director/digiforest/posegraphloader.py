@@ -170,7 +170,7 @@ class PoseGraphLoader():
         '''
         Transform position from map frame to utm frame and apply the offset to it
         '''
-        if self.frame != "gnss":
+        if self.frame != "utm":
             return pos
 
         new_pos = self.coordinates_converter.map_to_utm(pos)

@@ -115,12 +115,12 @@
                <widget class="QComboBox" name="inputcloudcombo">
                  <item>
                   <property name="text">
-                   <string>payload_clouds_in_map</string>
+                   <string>payload_clouds_in_gnss</string>
                   </property>
                  </item>
                  <item>
                   <property name="text">
-                   <string>payload_clouds_in_gnss</string>
+                   <string>payload_clouds_in_map</string>
                   </property>
                  </item>
               </widget>

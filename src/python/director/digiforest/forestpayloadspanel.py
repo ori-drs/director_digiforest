@@ -93,7 +93,7 @@ class ForestPayloadsPanel(QObject):
         self.data_dir = None
         self.image_manager = image_manager
         self.tree_data = np.array([])
-        self.frame = "map"
+        self.on_input_cloud_changed()  # to initialize the frame
 
     def on_input_cloud_changed(self):
         input = self.ui.inputcloudcombo.currentText[0:]
@@ -105,7 +105,7 @@ class ForestPayloadsPanel(QObject):
         if s[-1] == "map":
             self.frame = "map"
         elif s[-1] == "gnss":
-            self.frame = "gnss"
+            self.frame = "utm"
         
     def run_input_directory(self):
         return os.path.expanduser(self.ui.loadGraphText.text)
@@ -136,7 +136,7 @@ class ForestPayloadsPanel(QObject):
 
     def input_point_clouds_for_mapping_dir_name(self):
         '''
-        When the gnss frame is used, we need a special folder to store the converted pcd files
+        When the utm frame is used, we need a special folder to store the converted pcd files
         used to create the terrain maps.
         '''
         if self.frame == "map":
@@ -424,7 +424,7 @@ class ForestPayloadsPanel(QObject):
         pass
 
     def _start_tile_picking(self, ):
-        if self.frame != "gnss":
+        if self.frame != "utm":
             return
 
         self.tile_ticker = TilePicker(self.tiles_dir_name(), self.pose_graph_loader)
@@ -454,7 +454,7 @@ class ForestPayloadsPanel(QObject):
         time.sleep(0.2)
         QtCore.QCoreApplication.instance().processEvents()
 
-        if self.frame == "gnss":
+        if self.frame == "utm":
             # convert all point cloud in a format that terrain mapping can understand
             clouds = [os.path.join(self.point_clouds_dir_name(), f)
                       for f in os.listdir(self.point_clouds_dir_name())]
