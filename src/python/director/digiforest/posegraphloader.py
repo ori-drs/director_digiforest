@@ -176,10 +176,6 @@ class PoseGraphLoader():
         if self.frame != "gnss":
             return pos
 
-        # mat = transformations.quaternion_matrix(quat)
-        # new_pos = np.dot(mat, np.array([pos[0], pos[1], pos[2], 1]))
-        # return new_pos[0:3]
-
         new_pos = self.coordinates_converter.map_to_utm(pos)
         new_pos[0] -= self.offset[0]
         new_pos[1] -= self.offset[1]

@@ -84,6 +84,7 @@ set(python_files
   director/digiforest/imageloader.py
   director/digiforest/objectpicker.py
   director/digiforest/posegraphloader.py
+  director/digiforest/tilepicker.py
   director/digiforest/utils.py
   )
 

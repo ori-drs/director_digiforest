@@ -191,6 +191,39 @@
        </item>
        
        <item>
+        <widget class="QGroupBox" name="TilePicking">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="title">
+          <string>Tile Picking</string>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="startTilePickingButton">
+            <property name="text">
+             <string>Start Picking Tile</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="stopTilePickingButton">
+            <property name="text">
+             <string>Stop Picking Tile</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       
+       <item>
         <widget class="QGroupBox" name="HeightMaps">
          <property name="minimumSize">
           <size>

@@ -14,7 +14,7 @@ from director import applogic as app
 from director import segmentation
 import director.ioutils as io
 from director import vtkNumpy
-from matplotlib import image as matimage
+from director.digiforest.tilepicker import TilePicker
 from director.digiforest.objectpicker import ObjectPicker
 from director.digiforest.posegraphloader import PoseGraphLoader
 from director.digiforest.utils import convert_poly_data_to_pcd, convert_nano_secs_to_string, \
@@ -74,6 +74,12 @@ class ForestPayloadsPanel(QObject):
         self.ui.stopTreePickingButton.connect(
             "clicked()", self._stop_node_picking   # not used
         )
+        self.ui.startTilePickingButton.connect(
+            "clicked()", self._start_tile_picking
+        )
+        self.ui.stopTilePickingButton.connect(
+            "clicked()", self._stop_tile_picking
+        )
         self.ui.generateHeightmaps.connect(
             "clicked()", self.generate_height_maps
         )
@@ -121,8 +127,11 @@ class ForestPayloadsPanel(QObject):
             self.ui.loadGraphText.text = self.get_shorter_name_last(new_dir)
             self.parse_pose_graph(new_dir)
 
-    def point_clouds_dir_name(self):
+    def point_clouds_dir_name(self) -> str:
         return os.path.join(self.data_dir, self.ui.inputcloudcombo.currentText)
+
+    def tiles_dir_name(self) -> str:
+        return os.path.join(self.data_dir, "tiles")
 
     def input_point_clouds_for_mapping_dir_name(self):
         '''
@@ -346,7 +355,7 @@ class ForestPayloadsPanel(QObject):
 
     def _display_height_map_file(self, height_map_file, parent):
         height_mesh = ioutils.readPolyData(height_map_file)
-        height_mesh = segmentation.addCoordArraysToPolyDataXYZ( height_mesh )
+        height_mesh = segmentation.addCoordArraysToPolyDataXYZ(height_mesh)
         vis.showPolyData(height_mesh, 'Height Mesh', 'Color By', 'z',
                          colorByRange=[self.pose_graph_loader.median_pose_height - 4,
                                        self.pose_graph_loader.median_pose_height + 4], parent=parent)
@@ -415,6 +424,20 @@ class ForestPayloadsPanel(QObject):
 
     def _stop_node_picking(self):
         pass
+
+    def _start_tile_picking(self, ):
+        self.tile_ticker = TilePicker(self.tiles_dir_name(), self.pose_graph_loader)
+        self.tile_ticker.display_merged_cloud()
+        # object_list = ["merged_tile_cloud"]
+        #
+        # picker = ObjectPicker(number_of_points=1, view=app.getCurrentRenderView(), object_list=object_list)
+        # segmentation.addViewPicker(picker)
+        # picker.enabled = True
+        # picker.start()
+        # picker.annotation_func = functools.partial(self.find_node_data)
+
+    def _stop_tile_picking(self):
+        self.tile_ticker.display_merged_cloud(visible=False)
 
     def generate_height_maps(self):
         #thread = threading.Thread(target=self._generate_height_maps)
