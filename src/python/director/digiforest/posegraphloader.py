@@ -72,9 +72,6 @@ class PoseGraphLoader():
     def median_pose_height(self):
         return self.median_pose_height
 
-    def first_node_position(self, exp_num: int):
-        return self.offset
-
     def _load_file_data(self, filename: str) -> bool:
         '''
         Load the pose graph data
@@ -169,7 +166,7 @@ class PoseGraphLoader():
 
         return True
 
-    def _transform(self, pos):
+    def _transform(self, pos: np.ndarray):
         '''
         Transform position from map frame to utm frame and apply the offset to it
         '''

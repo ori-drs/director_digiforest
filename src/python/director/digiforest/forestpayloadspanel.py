@@ -30,6 +30,7 @@ import functools
 import shutil
 import threading
 import time
+from typing import List
 
 def addWidgetsToDict(widgets, d):
 
@@ -114,7 +115,7 @@ class ForestPayloadsPanel(QObject):
             app.getMainWindow(), "Choose directory...", self.run_input_directory()
         )    
 
-    def get_shorter_name_last(self, name):
+    def get_shorter_name_last(self, name: str):
         if len(name) > 30:
             name = "..." + name[len(name) - 20 :]
 
@@ -184,8 +185,7 @@ class ForestPayloadsPanel(QObject):
             self._draw_line(self.pose_graph_loader.trajectories[i],
                             name="trajectory_"+str(exp_num), parent="slam")
 
-
-    def find_tree(self, picked_coords):
+    def find_tree(self, picked_coords: List[float]):
 
         def points_in_cylinder(center, r, length, q):
             '''
@@ -194,7 +194,6 @@ class ForestPayloadsPanel(QObject):
             dist = np.linalg.norm(center[0:2]-q[0:2]) # 2d projection
             eps = 0.1
             return (dist <= (r+eps) and np.abs(center[2]-q[2]) <= (0.5*length+eps))
-
 
         for tree in self.tree_data:
             axis = tree[3:6]
@@ -208,8 +207,7 @@ class ForestPayloadsPanel(QObject):
                 self.ui.labelRadius.text = radius
                 break
 
-
-    def find_node_data(self, picked_coords):
+    def find_node_data(self, picked_coords: List[float]):
         '''
         Find and load the data ( point cloud, images ) stored in a node
         '''
@@ -317,7 +315,7 @@ class ForestPayloadsPanel(QObject):
             return
 
         # offset loaded point cloud
-        offset = self.pose_graph_loader.first_node_position(exp_num=1)
+        offset = self.pose_graph_loader.offset
         poly_data = ioutils.readPolyData(filename, ignoreSensorPose=True, offset=offset)
 
         # the following conversion is for terrain mapping
@@ -353,7 +351,7 @@ class ForestPayloadsPanel(QObject):
         else:
             print("Cannot read", height_map_dir)
 
-    def _display_height_map_file(self, height_map_file, parent):
+    def _display_height_map_file(self, height_map_file: str, parent: str):
         height_mesh = ioutils.readPolyData(height_map_file)
         height_mesh = segmentation.addCoordArraysToPolyDataXYZ(height_mesh)
         vis.showPolyData(height_mesh, 'Height Mesh', 'Color By', 'z',
@@ -398,7 +396,7 @@ class ForestPayloadsPanel(QObject):
                                parent=os.path.basename(filename))
         obj.setProperty('Point Size', 10)
 
-    def _show_pclXYZnormal(self, cloud_pc, name, visible, parent):
+    def _show_pclXYZnormal(self, cloud_pc, name: str, visible: bool, parent: str):
         array_xyz = cloud_pc.to_array()[:, 0:3]
         cloud_pc = pcl.PointCloud()
         cloud_pc.from_array(array_xyz)
@@ -426,15 +424,18 @@ class ForestPayloadsPanel(QObject):
         pass
 
     def _start_tile_picking(self, ):
+        if self.frame != "gnss":
+            return
+
         self.tile_ticker = TilePicker(self.tiles_dir_name(), self.pose_graph_loader)
         self.tile_ticker.display_merged_cloud()
-        # object_list = ["merged_tile_cloud"]
-        #
-        # picker = ObjectPicker(number_of_points=1, view=app.getCurrentRenderView(), object_list=object_list)
-        # segmentation.addViewPicker(picker)
-        # picker.enabled = True
-        # picker.start()
-        # picker.annotation_func = functools.partial(self.find_node_data)
+        object_list = ["merged_tile_cloud"]
+
+        picker = ObjectPicker(number_of_points=1, view=app.getCurrentRenderView(), object_list=object_list)
+        segmentation.addViewPicker(picker)
+        picker.enabled = True
+        picker.start()
+        picker.annotation_func = functools.partial(self.tile_ticker.find_tile)
 
     def _stop_tile_picking(self):
         self.tile_ticker.display_merged_cloud(visible=False)
@@ -455,7 +456,7 @@ class ForestPayloadsPanel(QObject):
             # convert all point cloud in a format that terrain mapping can understand
             clouds = [os.path.join(self.point_clouds_dir_name(), f)
                       for f in os.listdir(self.point_clouds_dir_name())]
-            offset = self.pose_graph_loader.first_node_position(exp_num=1)
+            offset = self.pose_graph_loader.offset
             for cloud in clouds:
                 if os.path.isfile(cloud):
                     ext = os.path.splitext(cloud)[1].lower()
@@ -474,7 +475,7 @@ class ForestPayloadsPanel(QObject):
     #     df.generate_height_maps(self.input_point_clouds_for_mapping_dir_name(),
     #                             self.height_map_dir())
 
-    def _draw_line(self, points, name: str, parent):
+    def _draw_line(self, points, name: str, parent: str):
         d = DebugData()
 
         for i in range(points.shape[0]-1):

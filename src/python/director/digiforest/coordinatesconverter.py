@@ -27,13 +27,13 @@ class CoordinatesConverter:
                 elif row[0] == "GNSS_LLA_REF":
                     self.lla_ref = [float(row[1]), float(row[2]), float(row[3])]
 
-    def map_to_utm(self, position):
+    def map_to_utm(self, position: np.ndarray):
         enu = self.map_to_enu(position)
         lat, lon, alt = self.enu_to_latlong(enu)
         easting, northing = self.latlong_to_utm(lat, lon)
         return [easting, northing, alt]
 
-    def map_to_enu(self, position):
+    def map_to_enu(self, position: np.ndarray):
         pose = np.identity(4)
         pose[0, 3] = position[0]
         pose[1, 3] = position[1]
@@ -41,13 +41,13 @@ class CoordinatesConverter:
         pose_enu = np.linalg.inv(self.t_enu_map) @ pose
         return pose_enu[0:3, 3]
 
-    def enu_to_latlong(self, position_enu):
+    def enu_to_latlong(self, position_enu: np.ndarray):
         lat, lon, alt = enu2geodetic(position_enu[0], position_enu[1], position_enu[2],
                                      self.lla_ref[0], self.lla_ref[1], self.lla_ref[2])
         return lat, lon, alt
 
 
-    def latlong_to_utm(self, lat, lon):
+    def latlong_to_utm(self, lat: float, lon: float):
         easting, northing, zone_num, zone_letter = from_latlon(lat, lon)
         #easting, northing = self.gnss_handler.convertWGS84toEPSG3067(lat, lon)
         return easting, northing
