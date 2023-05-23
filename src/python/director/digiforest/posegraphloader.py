@@ -69,9 +69,6 @@ class PoseGraphLoader():
         self.file_data = np.loadtxt(filename, delimiter=",", dtype=np.float64, skiprows=1)
         return self._load_file_data(filename)
 
-    def median_pose_height(self):
-        return self.median_pose_height
-
     def _load_file_data(self, filename: str) -> bool:
         '''
         Load the pose graph data
