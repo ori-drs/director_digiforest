@@ -81,6 +81,9 @@ class ForestPayloadsPanel(QObject):
         self.ui.stopTilePickingButton.connect(
             "clicked()", self._stop_tile_picking
         )
+        self.ui.loadmergedcloud.connect(
+            "clicked()", self._load_merged_cloud
+        )
         self.ui.generateHeightmaps.connect(
             "clicked()", self.generate_height_maps
         )
@@ -95,6 +98,7 @@ class ForestPayloadsPanel(QObject):
         self.tree_data = np.array([])
         self.on_input_cloud_changed()  # to initialize the frame
         self.terrain_mapper = HeightMapper()
+        self.tile_ticker = None
 
     def on_input_cloud_changed(self):
         input = self.ui.inputcloudcombo.currentText[0:]
@@ -377,12 +381,33 @@ class ForestPayloadsPanel(QObject):
     def _stop_node_picking(self):
         pass
 
+    def _load_merged_cloud(self, ):
+        obj = om.findObjectByName("merged_tile_cloud")
+        if obj:
+            obj.setProperty("Visible", True)
+            return
+
+        offset = self.pose_graph_loader.offset
+        merge_cloud_path = os.path.join(self.tiles_dir_name(), "merged_cloud.ply")
+        poly_data = ioutils.readPolyData(merge_cloud_path, ignoreSensorPose=True, offset=offset)
+
+        om.getOrCreateContainer("tiles")
+        merged_cloud = vis.showPolyData(poly_data, "merged_tile_cloud", parent="tiles")
+        merged_cloud.setProperty("Alpha", 0.6)
+        vis.addChildFrame(merged_cloud)
+
+    def _hide_merged_cloud(self):
+        obj = om.findObjectByName("merged_tile_cloud")
+        if obj:
+            obj.setProperty("Visible", False)
+            obj.setProperty("Alpha", 0.6)
+
     def _start_tile_picking(self, ):
         if self.frame != "utm":
             return
 
+        self._load_merged_cloud()
         self.tile_ticker = TilePicker(self.tiles_dir_name(), self.pose_graph_loader)
-        self.tile_ticker.display_merged_cloud()
         object_list = ["merged_tile_cloud"]
 
         self._picker = ObjectPicker(number_of_points=1, view=app.getCurrentRenderView(), object_list=object_list,
@@ -393,7 +418,7 @@ class ForestPayloadsPanel(QObject):
         self._picker.annotation_func = functools.partial(self.tile_ticker.find_tile)
 
     def _stop_tile_picking(self):
-        self.tile_ticker.display_merged_cloud(visible=False)
+        self._hide_merged_cloud()
         self._picker.finish()
 
     def generate_height_maps(self):

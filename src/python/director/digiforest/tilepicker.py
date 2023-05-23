@@ -21,28 +21,6 @@ class TilePicker():
         filename = os.path.join(self.tile_dir, "tiles.csv")
         self.tiles_data = np.loadtxt(filename, delimiter=",", dtype=np.float64, skiprows=1)
 
-    def load_merged_cloud(self):
-        obj = om.findObjectByName("merged_tile_cloud")
-        if obj:
-            return
-
-        offset = self.pose_graph_loader.offset
-        merge_cloud_path = os.path.join(self.tile_dir, self.merged_cloud_filename)
-        poly_data = ioutils.readPolyData(merge_cloud_path, ignoreSensorPose=True, offset=offset)
-
-        om.getOrCreateContainer("tiles")
-        self.merged_cloud = vis.showPolyData(poly_data, "merged_tile_cloud", parent="tiles")
-        vis.addChildFrame(self.merged_cloud)
-
-    def display_merged_cloud(self, visible=True):
-        if self.merged_cloud is None:
-            self.load_merged_cloud()
-
-        obj = om.findObjectByName("merged_tile_cloud")
-        if obj:
-            obj.setProperty("Visible", visible)
-            obj.setProperty("Alpha", 0.6)
-
     def load_individual_tile(self, tile_id: int):
         tile_filename = "tile_" + str(tile_id) + ".ply"
         print("Loading", tile_filename)

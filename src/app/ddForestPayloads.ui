@@ -206,13 +206,20 @@
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
           <item row="0" column="0">
+           <widget class="QPushButton" name="loadmergedcloud">
+            <property name="text">
+             <string>Load merged cloud</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
            <widget class="QPushButton" name="startTilePickingButton">
             <property name="text">
              <string>Start Picking Tile</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
+          <item row="1" column="1">
            <widget class="QPushButton" name="stopTilePickingButton">
             <property name="text">
              <string>Stop Picking Tile</string>
