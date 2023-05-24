@@ -8,13 +8,28 @@ import os.path
 
 
 def readPolyData(filename, computeNormals=False, ignoreSensorPose=False, offset=None, offsetPromptDialog=True):
+
     try:
         ext = os.path.splitext(filename)[1].lower()
 
-        if ext not in readPolyData.readers:
+        readers = {
+            ".vtp": vtk.vtkXMLPolyDataReader,
+            ".vtk": vtk.vtkPolyDataReader,
+            ".ply": vtkPCLIOCustomPython.vtkPLYReaderCustom, # custom reader that supports double
+            #".ply": vtk.vtkPLYReader,
+            ".obj": vtk.vtkOBJReader,
+            ".stl": vtk.vtkSTLReader,
+        }
+
+        try:
+            readers[".pcd"] = vtk.vtkPCDReader
+        except AttributeError:
+            pass
+
+        if ext not in readers:
             raise Exception("Unknown file extension in readPolyData: %s" % filename)
 
-        reader = readPolyData.readers[ext]
+        reader = readers[ext]()
         if ext == ".pcd":
             reader.IgnoreSensorPose(ignoreSensorPose)
         if ext == ".ply" and offset is not None:
@@ -23,9 +38,15 @@ def readPolyData(filename, computeNormals=False, ignoreSensorPose=False, offset=
         reader.SetFileName(filename)
         if ext == ".ply" and (offset is None) and offsetPromptDialog:
             if reader.NeedOffset():
-                offset_x = reader.GetSuggestedOffsetX()
-                offset_y = reader.GetSuggestedOffsetY()
-                offset_z = reader.GetSuggestedOffsetZ()
+                if readPolyData.offset is None:
+                    offset_x = reader.GetSuggestedOffsetX()
+                    offset_y = reader.GetSuggestedOffsetY()
+                    offset_z = reader.GetSuggestedOffsetZ()
+                    readPolyData.offset = [offset_x, offset_y, offset_z]
+                else:
+                    offset_x = readPolyData.offset[0]
+                    offset_y = readPolyData.offset[1]
+                    offset_z = readPolyData.offset[2]
                 dialog = inputDialog.PointCloudOffsetInputDialog(offset_x, offset_y, offset_z)
                 if dialog.exec():
                     reader.SetOffset(dialog.get_offset_x(), dialog.get_offset_y(), dialog.get_offset_z())
@@ -40,22 +61,9 @@ def readPolyData(filename, computeNormals=False, ignoreSensorPose=False, offset=
         else:
             return polyData
     except AttributeError:
-        # initialize static readers
-        readPolyData.readers = {
-            ".vtp": vtk.vtkXMLPolyDataReader(),
-            ".vtk": vtk.vtkPolyDataReader(),
-            ".ply": vtkPCLIOCustomPython.vtkPLYReaderCustom(),  # custom reader that supports double
-            # ".ply": vtk.vtkPLYReader,
-            ".obj": vtk.vtkOBJReader(),
-            ".stl": vtk.vtkSTLReader(),
-        }
-        try:
-            readPolyData.readers[".pcd"] = vtk.vtkPCDReader()
-        except AttributeError:
-            pass
-
-        # call function again
+        readPolyData.offset = None
         return readPolyData(filename, computeNormals, ignoreSensorPose, offset, offsetPromptDialog)
+
 
 
 def readMultiBlock(filename):
