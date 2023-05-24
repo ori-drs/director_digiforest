@@ -50,7 +50,7 @@ def readPolyData(filename, computeNormals=False, ignoreSensorPose=False, offset=
             ".stl": vtk.vtkSTLReader(),
         }
         try:
-            readPolyData.readers[".pcd"] = vtk.vtkPCDReader
+            readPolyData.readers[".pcd"] = vtk.vtkPCDReader()
         except AttributeError:
             pass
 
