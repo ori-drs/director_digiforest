@@ -10,6 +10,12 @@ This previous version was heavily integrated with Drake and did not use ROS. It 
 
 In addition to Atlas, its been used to operate ANYmal in Oxford Dynamic Robot Systems Group, [NASA's Valkyrie](https://www.youtube.com/watch?v=AjSP8iZyhTE), a Clearpath Husky with [two RE2 arms](https://www.youtube.com/watch?v=_t1c_lrEH1k) and another with [two UE5 arms](https://www.youtube.com/watch?v=1OyAzHcDL5M).
 
+# Usage 
+
+```
+roslaunch director_digiforest digiforest.launch
+```
+
 # Citing
 
 If you wish to cite the Director, please use this publication from the MIT DARPA Robotics Challenge Team:
