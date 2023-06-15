@@ -28,7 +28,8 @@ class HeightMapper():
                         median_pose_height: float):
         cloud_pc = pcl.PointCloud_PointNormal()
         ext = os.path.splitext(filename)[1].lower()
-        #python-pcl only works with pcd files
+        # python-pcl only works with pcd files
+        # the bottleneck of this function is loading the point cloud, it's very slow
         if ext == ".pcd":
             cloud_pc._from_pcd_file(filename.encode('utf-8'))
         else:

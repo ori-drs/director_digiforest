@@ -109,7 +109,7 @@ class ForestPayloadsPanel(QObject):
         self.ui.heightmapdir.text = new_name
         if s[-1] == "map":
             self.frame = "map"
-        elif s[-1] == "gnss":
+        elif s[-1] == "utm":
             self.frame = "utm"
         
     def run_input_directory(self):
