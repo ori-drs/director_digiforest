@@ -26,6 +26,19 @@ class HeightMapper():
 
     def terrain_mapping(self, filename: str, height_map_file: str,
                         median_pose_height: float):
+        """
+        :param filename: input point cloud file name
+        :param height_map_file: destination file where the generated heightmap will be saved
+        :param median_pose_height:
+        :return:
+        """
+        if os.path.isfile(height_map_file):
+            print("Loading", height_map_file)
+            self.display_height_map_file(height_map_file, parent=os.path.basename(filename),
+                                         median_pose_height=median_pose_height)
+            return
+
+
         cloud_pc = pcl.PointCloud_PointNormal()
         ext = os.path.splitext(filename)[1].lower()
         # python-pcl only works with pcd files

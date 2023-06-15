@@ -264,15 +264,16 @@ class ForestPayloadsPanel(QObject):
             # point cloud not found, return
             return
 
-        # the pcl class used for terrain mapping only support pcd files
-        # so make sure that the input cloud is a pcd file
-        ext = os.path.splitext(cloud_file)[1].lower()
-        if ext == ".pcd":
-            self.terrain_mapper.terrain_mapping(cloud_file, height_map_file,
-                                                self.pose_graph_loader.median_pose_height)
-        else:
-            self.terrain_mapper.terrain_mapping(self.converted_cloud_path, height_map_file,
-                                                self.pose_graph_loader.median_pose_height)
+        if self.ui.generateHeightMapCheck.checked:
+            # the pcl class used for terrain mapping only support pcd files
+            # so make sure that the input cloud is a pcd file
+            ext = os.path.splitext(cloud_file)[1].lower()
+            if ext == ".pcd":
+                self.terrain_mapper.terrain_mapping(cloud_file, height_map_file,
+                                                    self.pose_graph_loader.median_pose_height)
+            else:
+                self.terrain_mapper.terrain_mapping(self.converted_cloud_path, height_map_file,
+                                                    self.pose_graph_loader.median_pose_height)
 
         message_box.accept()  # closing message box
 
