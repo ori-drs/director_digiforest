@@ -414,9 +414,6 @@ class ForestPayloadsPanel(QObject):
 
     @loading_popup("Generating height maps, please wait.")
     def generate_height_maps(self):
-        #thread = threading.Thread(target=self._generate_height_maps)
-        #thread.start()
-
         if self.frame == "utm":
             # convert all point cloud in a format that terrain mapping can understand
             clouds = [os.path.join(self.point_clouds_dir_name(), f)
@@ -433,10 +430,6 @@ class ForestPayloadsPanel(QObject):
 
             df.generate_height_maps(self.input_point_clouds_for_mapping_dir_name(),
                                 self.height_map_dir())
-
-    # def _generate_height_maps(self):
-    #     df.generate_height_maps(self.input_point_clouds_for_mapping_dir_name(),
-    #                             self.height_map_dir())
 
     def _draw_line(self, points, name: str, parent: str):
         d = DebugData()

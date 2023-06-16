@@ -6,6 +6,7 @@ import pcl
 import os
 import shutil
 import functools
+import threading
 
 import time
 import numpy as np
@@ -74,6 +75,7 @@ def loading_popup(popup_message: str):
     def wrap(func):
         @functools.wraps(func)
         def wrapped_func(*args, **kwargs):
+
             message_box = QtGui.QMessageBox()
             message_box.setIcon(QtGui.QMessageBox.Information)
             message_box.setText(popup_message)
@@ -83,7 +85,14 @@ def loading_popup(popup_message: str):
             time.sleep(0.2)
             QtCore.QCoreApplication.instance().processEvents()
 
-            func(*args, **kwargs)
+            #func(*args, **kwargs)
+            # run the function inside a thread
+            thread = threading.Thread(target=func, args=args, kwargs=kwargs)
+            thread.start()
+
+            while thread.is_alive():
+                time.sleep(0.2)
+                QtCore.QCoreApplication.instance().processEvents()
 
             message_box.accept()  # closing message box
         return wrapped_func
