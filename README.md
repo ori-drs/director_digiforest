@@ -16,6 +16,43 @@ In addition to Atlas, its been used to operate ANYmal in Oxford Dynamic Robot Sy
 roslaunch director_digiforest digiforest.launch
 ```
 
+# Load a project
+
+Open the `Forestry` panel by clicking on the forest icon located near the top right corner of the window. Under `Load Pose Graph` click on `Load` and select the directory that contains the pose graph file. The pose graph will appear.
+
+![pose graph](docs/images/pose_graph.png)
+
+The payload nodes are in red. You can visualize all the nodes of the pose graph by clicking on `experiment` in the `Model Browser` on the left panel.
+
+## Load payload point clouds
+
+Once a project is loaded, you can load individual payload clouds by clicking first on the `Start Picking Node` button and then on the payload node itself. After a few seconds the payload cloud will be loaded.
+
+![cloud](docs/images/payload_cloud.png)
+
+To load another cloud, repeat the same procedure by cliking again on `Start Picking Node`.
+
+## Load tiles
+
+To load the tiles, you have to make sure that your project directory has a `Tiles` folder containing the tiles point cloud. In the Forestry panel, under the `Tile Picking` section, load a downsampled combined point cloud of all the tiles; it is helpful to load the tiles of interest. To load a tile, click on the `Start Picking Tile` button and then click on a point of the combined cloud that you are interested in, the tile containing this point will be loaded. Click on `Stop Picking Tile` to hide the combined point cloud and stop the tile picking process.
+
+![tiles](docs/images/tiles.png)
+
+## Load height maps
+
+It's possible to generate a height map from the payload clouds. To enable this feature, make sure that the `Generate height map when a payload is loaded` checkbox is checked in the Forestry panel. Be aware that this terrain mapping generation take time and will slow down the payload cloud loading. All the height maps can be generated all at once ( without loading them ) by clicking on `Generate height maps`. They can be loaded all at once by clicking on `Load height maps`.
+
+![height map](docs/images/height_map.png)
+
+
+## Useful features
+
+A point cloud can be colorised by height by selecting the cloud in the `Model Browser` and clicking on the `Color Cloud` button on the top bar.
+
+![pose graph](docs/images/payload_cloud_color.png)
+
+
+
 # Citing
 
 If you wish to cite the Director, please use this publication from the MIT DARPA Robotics Challenge Team:

@@ -496,7 +496,7 @@ def init(image_manager):
     panel = ForestPayloadsPanel(image_manager)
     action = app.addDockAction(
         "ForestPayloadsPanel",
-        "Forest Payloads",
+        "Forestry",
         os.path.join(os.path.dirname(__file__), "../images/forest.png"),
     )
     dock = app.addWidgetToDock(
