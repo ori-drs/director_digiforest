@@ -23,7 +23,7 @@ class TilePicker():
         filename = os.path.join(self.tile_dir, "tiles.csv")
         self.tiles_data = np.loadtxt(filename, delimiter=",", dtype=np.float64, skiprows=1)
 
-    @loading_popup
+    @loading_popup("Loading point cloud, please wait.")
     def load_individual_tile(self, tile_id: int):
         tile_filename = "tile_" + str(tile_id) + ".ply"
         print("Loading", tile_filename)

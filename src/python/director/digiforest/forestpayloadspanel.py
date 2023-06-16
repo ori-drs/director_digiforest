@@ -212,7 +212,7 @@ class ForestPayloadsPanel(QObject):
                 self.ui.labelRadius.text = radius
                 break
 
-    @loading_popup
+    @loading_popup("Loading point cloud, please wait.")
     def find_node_data(self, picked_coords: List[float]):
         '''
         Find and load the data ( point cloud, images ) stored in a node
@@ -412,17 +412,10 @@ class ForestPayloadsPanel(QObject):
         self._hide_merged_cloud()
         self._picker.finish()
 
+    @loading_popup("Generating height maps, please wait.")
     def generate_height_maps(self):
         #thread = threading.Thread(target=self._generate_height_maps)
         #thread.start()
-        message_box = QtGui.QMessageBox()
-        message_box.setIcon(QtGui.QMessageBox.Information)
-        message_box.setText("Generating height maps, please wait.")
-        message_box.setWindowTitle("Please Wait")
-        message_box.setStandardButtons(QtGui.QMessageBox.NoButton)
-        message_box.show()
-        time.sleep(0.2)
-        QtCore.QCoreApplication.instance().processEvents()
 
         if self.frame == "utm":
             # convert all point cloud in a format that terrain mapping can understand
@@ -440,8 +433,6 @@ class ForestPayloadsPanel(QObject):
 
             df.generate_height_maps(self.input_point_clouds_for_mapping_dir_name(),
                                 self.height_map_dir())
-
-        message_box.accept()
 
     # def _generate_height_maps(self):
     #     df.generate_height_maps(self.input_point_clouds_for_mapping_dir_name(),
