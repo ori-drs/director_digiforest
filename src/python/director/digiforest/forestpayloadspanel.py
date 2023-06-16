@@ -19,7 +19,7 @@ from director.digiforest.objectpicker import ObjectPicker
 from director.digiforest.posegraphloader import PoseGraphLoader
 from director.digiforest.heightmapper import HeightMapper
 from director.digiforest.utils import convert_poly_data_to_pcd, convert_nano_secs_to_string, \
-                                      convert_heights_mesh
+                                      convert_heights_mesh, loading_popup
 
 import digiforest_drs as df
 
@@ -212,6 +212,7 @@ class ForestPayloadsPanel(QObject):
                 self.ui.labelRadius.text = radius
                 break
 
+    @loading_popup
     def find_node_data(self, picked_coords: List[float]):
         '''
         Find and load the data ( point cloud, images ) stored in a node
@@ -240,15 +241,6 @@ class ForestPayloadsPanel(QObject):
         local_cloud = "cloud_"+str(sec)+"_"+convert_nano_secs_to_string(nsec)
         tree_description_file = os.path.join(self.data_dir, "trees.csv")
 
-        message_box = QtGui.QMessageBox()
-        message_box.setIcon(QtGui.QMessageBox.Information)
-        message_box.setText("Loading clouds, please wait.")
-        message_box.setWindowTitle("Please Wait")
-        message_box.setStandardButtons(QtGui.QMessageBox.NoButton)
-        message_box.show()
-        time.sleep(0.2)
-        QtCore.QCoreApplication.instance().processEvents()
-
         cloud_file = None
         for ext in [".pcd", ".ply"]:
             cloud_file = os.path.join(self.point_clouds_dir_name(), local_cloud + ext)
@@ -274,8 +266,6 @@ class ForestPayloadsPanel(QObject):
             else:
                 self.terrain_mapper.terrain_mapping(self.converted_cloud_path, height_map_file,
                                                     self.pose_graph_loader.median_pose_height)
-
-        message_box.accept()  # closing message box
 
         if os.path.isfile(tree_description_file):
             self.load_cylinders(tree_description_file)

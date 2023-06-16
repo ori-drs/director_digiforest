@@ -1,11 +1,13 @@
 from director import vtkNumpy as vnp
 import director.ioutils as io
+from PythonQt import QtCore, QtGui, QtUiTools
 
 import pcl
 import os
 import shutil
+import functools
 
-import vtk
+import time
 import numpy as np
 from vtk.util.numpy_support import vtk_to_numpy
 
@@ -65,3 +67,23 @@ def convert_heights_mesh(heights_array_raw, height_map_file: str):
         shutil.copyfile('/tmp/height_map.ply', height_map_file)
     else:
         print("Loading height_map", height_map_file)
+
+def loading_popup(func):
+    '''Decorator to show a popup window before a function call.
+       The window is closed after the function returned'''
+
+    @functools.wraps(func)
+    def wrapper_func(*args, **kwargs):
+        message_box = QtGui.QMessageBox()
+        message_box.setIcon(QtGui.QMessageBox.Information)
+        message_box.setText("Loading point cloud, please wait.")
+        message_box.setWindowTitle("Please Wait")
+        message_box.setStandardButtons(QtGui.QMessageBox.NoButton)
+        message_box.show()
+        time.sleep(0.2)
+        QtCore.QCoreApplication.instance().processEvents()
+
+        func(*args, **kwargs)
+
+        message_box.accept()  # closing message box
+    return wrapper_func

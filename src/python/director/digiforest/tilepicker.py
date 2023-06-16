@@ -9,8 +9,10 @@ import os
 import numpy as np
 from typing import List
 
+from director.digiforest.utils import loading_popup
+
 class TilePicker():
-    def __init__(self, tile_dir, pose_graph_loader):
+    def __init__(self, tile_dir: str, pose_graph_loader):
         self.tile_dir = tile_dir
         self.merged_cloud_filename = "merged_cloud.ply"
         self.merged_cloud = None
@@ -21,6 +23,7 @@ class TilePicker():
         filename = os.path.join(self.tile_dir, "tiles.csv")
         self.tiles_data = np.loadtxt(filename, delimiter=",", dtype=np.float64, skiprows=1)
 
+    @loading_popup
     def load_individual_tile(self, tile_id: int):
         tile_filename = "tile_" + str(tile_id) + ".ply"
         print("Loading", tile_filename)
