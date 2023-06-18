@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 2.8.7)
 
 project(director_digiforest)
 
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS pcl_ros pcl_plugin
+    ctk_python_console
+    qt_property_browser python_qt
+    digiforest_drs)
 
 catkin_package(
   CATKIN_DEPENDS  
