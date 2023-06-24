@@ -1,14 +1,30 @@
+# Installation
+
+You need to clone and build the dependencies of director, alternatively you can use a docker container : https://github.com/ori-drs/director_docker .
 
 
-# History
+- `sudo apt install libpcl-dev python3-pip ros-noetic-pcl-ros libqwt-qt5-dev qtscript5-dev qtbase5-private-dev qtmultimedia5-dev python3-pyqt5`
+- `pip3 install Cython numpy==1.23.4 lxml utm pymap3d`
 
-This repo (from Oxford Dynamic Robot Systems Group) is a fork of the original [Director master](https://github.com/RobotLocomotion/director). Originally Director was developed as the primary user interface used by Team MIT in the DARPA Robotics Challenge.
+Clone and build python-pcl manually
+- `git clone https://github.com/ori-drs/python-pcl.git`
+- `cd python-pcl`
+- `python3 setup.py build_ext --inplace`
+- `python3 setup.py install`
 
-[![Team MIT DRC day-1 visualization](https://img.youtube.com/vi/em69XtIEEAg/0.jpg)](https://www.youtube.com/watch?v=em69XtIEEAg)
+Clone director and the others dependencies
 
-This previous version was heavily integrated with Drake and did not use ROS. It continues to be developed as the user interface for Drake by Toyota Research Institute. [Link to RobotLocomotion/TRI's version of Director](https://github.com/RobotLocomotion/director).
+- `git clone https://github.com/ori-drs/director_digiforest.git`
+- `git clone https://github.com/ori-drs/PointCloudLibraryPlugin`
+- `git clone https://github.com/ori-drs/director_digiforest.git`
+- `git clone https://github.com/ori-drs/cv_utils.git`
+- `git clone https://github.com/ori-drs/ctkPythonConsole.git`
+- `git clone https://github.com/ori-drs/PythonQt.git`
+- `git clone https://github.com/ori-drs/QtPropertyBrowser.git`
+- `git clone https://github.com/ori-drs/digiforest_drs.git`
 
-In addition to Atlas, its been used to operate ANYmal in Oxford Dynamic Robot Systems Group, [NASA's Valkyrie](https://www.youtube.com/watch?v=AjSP8iZyhTE), a Clearpath Husky with [two RE2 arms](https://www.youtube.com/watch?v=_t1c_lrEH1k) and another with [two UE5 arms](https://www.youtube.com/watch?v=1OyAzHcDL5M).
+Build the package :
+- `catkin build director_digiforest`
 
 # Usage 
 
@@ -52,6 +68,15 @@ A point cloud can be colorised by height by selecting the cloud in the `Model Br
 ![pose graph](docs/images/payload_cloud_color.png)
 
 
+# History
+
+This repo (from Oxford Dynamic Robot Systems Group) is a fork of the original [Director master](https://github.com/RobotLocomotion/director). Originally Director was developed as the primary user interface used by Team MIT in the DARPA Robotics Challenge.
+
+[![Team MIT DRC day-1 visualization](https://img.youtube.com/vi/em69XtIEEAg/0.jpg)](https://www.youtube.com/watch?v=em69XtIEEAg)
+
+This previous version was heavily integrated with Drake and did not use ROS. It continues to be developed as the user interface for Drake by Toyota Research Institute. [Link to RobotLocomotion/TRI's version of Director](https://github.com/RobotLocomotion/director).
+
+In addition to Atlas, its been used to operate ANYmal in Oxford Dynamic Robot Systems Group, [NASA's Valkyrie](https://www.youtube.com/watch?v=AjSP8iZyhTE), a Clearpath Husky with [two RE2 arms](https://www.youtube.com/watch?v=_t1c_lrEH1k) and another with [two UE5 arms](https://www.youtube.com/watch?v=1OyAzHcDL5M).
 
 # Citing
 
